@@ -14,9 +14,5 @@ builder.Services.AddHangfireServer();
 
 var app = builder.Build();
 
-// Use Hangfire Dashboard
-app.UseHangfireDashboard(); // By default, available at /hangfire
-
-app.MapGet("/", () => "Hangfire Dashboard is available at /hangfire");
-
+app.UseHangfireDashboard(); 
 app.Run();

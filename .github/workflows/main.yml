@@ -36,7 +36,7 @@ jobs:
     - name: Build Docker Image
       run: |
         docker build . \
-          -f Backend/Hangfire/.Dockerfile \
+          -f Backend/Hangfire/Dockerfile \
           -t bjand49/sursen-jobs:latest
 
     - name: Login to Docker Hub

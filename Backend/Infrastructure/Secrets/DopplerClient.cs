@@ -9,29 +9,26 @@ namespace Infrastructure.Secrets
     public class DopplerClient : ISecretClient
     {
         private readonly HttpClient _httpClient;
-        private readonly ILogger<DopplerClient> _logger;
-        public DopplerClient(HttpClient httpClient, ILogger<DopplerClient> logger)
+        private readonly string _environment;
+        private readonly string _project = "sursen";
+        public DopplerClient(HttpClient httpClient,string doppler_key, string environment)
         {
-            _logger = logger;
-            var token = Environment.GetEnvironmentVariable("doppler_key", EnvironmentVariableTarget.Machine);
-            if(token == null)
-            {
-                _logger.LogError("Environment variable: doppler_key is not set.");
-                throw new Exception($"Environment variable: doppler_key is not set.");
-            }
+            ArgumentNullException.ThrowIfNull(doppler_key);
+            ArgumentNullException.ThrowIfNull(environment);
+            ArgumentNullException.ThrowIfNull(httpClient);
+            _environment = environment;
+            _httpClient = httpClient;
 
             _httpClient = httpClient;
             _httpClient.BaseAddress = new Uri("https://api.doppler.com/v3/");
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", doppler_key);
         }
         public async Task<string> GetSecretAsync(string key, CancellationToken? token = null)
         {
-            var project = "sursen";
-            var config = "dev";
             var name = key.ToUpper();
-            var url = $"configs/config/secret?project={project}&config={config}&name={name}";
+            var url = $"configs/config/secret?project={_project}&config={_environment}&name={name}";
 
-            var response = await _httpClient.GetAsync(url, token ?? new CancellationToken());
+            var response = await _httpClient.GetAsync(url, token.GetValueOrDefault());
             switch (response.StatusCode)
             {
                 case System.Net.HttpStatusCode.OK:

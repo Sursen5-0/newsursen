@@ -2,15 +2,10 @@
 
 namespace Hangfire.Jobs
 {
-    public class TestJob
+    public class TestJob(ISecretClient _secretClient, ILogger<TestJob> _logger)
     {
-        private ISecretClient _secretClient;
-        private ILogger<TestJob> _logger;
-        public TestJob(ISecretClient secretClient, ILogger<TestJob> logger)
-        {
-            _secretClient = secretClient;
-            _logger = logger;
-        }
+        private readonly ISecretClient _secretClient;
+        private readonly ILogger<TestJob> _logger;
         public void WriteTest()
         {
             _logger.LogInformation("making call");

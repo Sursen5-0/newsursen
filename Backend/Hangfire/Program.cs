@@ -10,15 +10,21 @@ builder.Services.AddHangfire(config =>
     config.UseInMemoryStorage(); // Use in-memory storage for demo purposes
 });
 builder.Services.AddHangfireServer();
+builder.Services.AddHttpClient();
 builder.Services.AddScoped<TestJob>();
-builder.Services.AddScoped<ISecretClient,DopplerClient>();
+builder.Services.AddScoped<ISecretClient,DopplerClient>(provider =>
+{
+    var httpclient = provider.GetRequiredService<HttpClient>();
+    var token = Environment.GetEnvironmentVariable("doppler_key");
+    var environment = Environment.GetEnvironmentVariable("Environment");
+    return new DopplerClient(httpclient, token, environment);
+});
 builder.Services.AddLogging(loggingbuilder =>
 {
     loggingbuilder.ClearProviders()
     .SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace)
     .AddConsole();
 });
-builder.Services.AddHttpClient();
 
 var app = builder.Build();
 

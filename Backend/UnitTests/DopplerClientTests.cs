@@ -20,8 +20,7 @@ namespace UnitTests
 
             var response = new SecretResponse
             {
-                Secret = new Secret { Value = expectedSecret },
-                Success = true
+                Secret = new Secret { Value = expectedSecret }
             };
 
             var handlerMock = new Mock<HttpMessageHandler>();

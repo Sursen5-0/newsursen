@@ -12,8 +12,5 @@ namespace Infrastructure.Secrets
     {
         [JsonPropertyName("value")]
         public required Secret Secret { get; set; }
-
-        [JsonPropertyName("success")]
-        public required bool Success { get; set; }
     }
 }

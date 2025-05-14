@@ -10,7 +10,7 @@ namespace Infrastructure.Secrets
     public class Secret
     {
         [JsonPropertyName("raw")]
-        public string Value { get; set; }
+        public required string Value { get; set; }
 
     }
 }

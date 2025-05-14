@@ -10,10 +10,10 @@ namespace Infrastructure.Secrets
 {
     public class SecretResponse
     {
-        [JsonPropertyName("secrets")]
-        public Dictionary<string, Secret> Secrets { get; set; }
+        [JsonPropertyName("value")]
+        public required Secret Secret { get; set; }
 
         [JsonPropertyName("success")]
-        public bool Success { get; set; }
+        public required bool Success { get; set; }
     }
 }

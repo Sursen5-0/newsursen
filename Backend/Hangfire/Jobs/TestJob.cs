@@ -1,10 +1,21 @@
-﻿namespace Hangfire.Jobs
+﻿using Application.Secrets;
+
+namespace Hangfire.Jobs
 {
     public class TestJob
     {
-        public static void WriteTest()
+        private ISecretClient _secretClient;
+        private ILogger<TestJob> _logger;
+        public TestJob(ISecretClient secretClient, ILogger<TestJob> logger)
         {
-            Console.WriteLine("this is a test");
+            _secretClient = secretClient;
+            _logger = logger;
+        }
+        public void WriteTest()
+        {
+            _logger.LogInformation("making call");
+            var key = _secretClient.GetSecretAsync("test").Result;
+            _logger.LogInformation($"got secret for test:{key}");
         }
     }
 }

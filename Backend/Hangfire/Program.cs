@@ -1,9 +1,7 @@
+using Application.Secrets;
 using Hangfire;
 using Hangfire.Jobs;
-using Hangfire.SqlServer;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.EnvironmentVariables;
-using System.Configuration;
+using Infrastructure.Secrets;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,15 +10,25 @@ builder.Services.AddHangfire(config =>
     config.UseInMemoryStorage(); // Use in-memory storage for demo purposes
 });
 builder.Services.AddHangfireServer();
+builder.Services.AddScoped<TestJob>();
+builder.Services.AddScoped<ISecretClient,DopplerClient>();
+builder.Services.AddLogging(loggingbuilder =>
+{
+    loggingbuilder.ClearProviders()
+    .SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace)
+    .AddConsole();
+});
+builder.Services.AddHttpClient();
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
     var jobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
-
+    var service = scope.ServiceProvider.GetRequiredService<TestJob>();
     jobManager.AddOrUpdate(
         "my-recurring-job",
-        () => TestJob.WriteTest(), // this will fail if you use instance methods like this
+        () => service.WriteTest(), 
         Cron.Minutely);
 }
 

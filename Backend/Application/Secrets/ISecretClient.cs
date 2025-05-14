@@ -2,6 +2,6 @@
 {
     public interface ISecretClient
     {
-        public string GetSecret(string key);
+        public Task<string> GetSecretAsync(string key, CancellationToken? token = null);
     }
 }

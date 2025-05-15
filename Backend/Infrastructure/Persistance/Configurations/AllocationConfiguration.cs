@@ -11,9 +11,9 @@ namespace Infrastructure.Persistance.Configurations
 {
     public class AllocationConfiguration : BaseEntityConfiguration<Allocation>
     {
-        public void Configure(EntityTypeBuilder<Allocation> builder)
+        public override void Configure(EntityTypeBuilder<Allocation> builder)
         {
-            base.Configure(builder);
+            BaseConfigure(builder);
 
             builder.HasKey(e => e.Id);
 

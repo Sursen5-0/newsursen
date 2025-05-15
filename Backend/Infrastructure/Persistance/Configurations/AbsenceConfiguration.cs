@@ -6,9 +6,9 @@ namespace Infrastructure.Persistance.Configurations
 {
     public class AbsenceConfiguration : BaseEntityConfiguration<Absence>
     {
-        public void Configure(EntityTypeBuilder<Absence> builder)
+        public override void Configure(EntityTypeBuilder<Absence> builder)
         {
-            base.Configure(builder);
+            BaseConfigure(builder);
             builder.HasKey(e => e.Id);
 
             builder.Property(e => e.Id).ValueGeneratedNever();

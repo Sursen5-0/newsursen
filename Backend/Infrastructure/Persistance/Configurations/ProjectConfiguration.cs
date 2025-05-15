@@ -12,9 +12,9 @@ namespace Infrastructure.Persistance.Configurations
 {
     public class ProjectConfiguration : BaseEntityConfiguration<Project>
     {
-        public void Configure(EntityTypeBuilder<Project> builder)
+        public override void Configure(EntityTypeBuilder<Project> builder)
         {
-            base.Configure(builder);
+            BaseConfigure(builder);
 
             builder.HasKey(e => e.Id);
 

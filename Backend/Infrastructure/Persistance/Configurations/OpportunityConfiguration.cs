@@ -12,9 +12,9 @@ namespace Infrastructure.Persistance.Configurations
 {
     public class OpportunityConfiguration : BaseEntityConfiguration<Opportunity>
     {
-        public void Configure(EntityTypeBuilder<Opportunity> builder)
+        public override void Configure(EntityTypeBuilder<Opportunity> builder)
         {
-            base.Configure(builder);
+            BaseConfigure(builder);
 
             builder.HasKey(e => e.Id);
 

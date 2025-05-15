@@ -11,7 +11,7 @@ namespace Infrastructure.Persistance.Configurations
 {
     public abstract class BaseEntityConfiguration<T> : IEntityTypeConfiguration<T> where T : BaseEntity
     {
-        public virtual void Configure(EntityTypeBuilder<T> builder)
+        public void BaseConfigure(EntityTypeBuilder<T> builder)
         {
             builder.Property(e => e.CreatedAt)
                    .HasDefaultValueSql("getdate()")
@@ -20,6 +20,11 @@ namespace Infrastructure.Persistance.Configurations
             builder.Property(e => e.UpdatedAt)
                    .HasDefaultValueSql("getdate()")
                    .HasColumnType("datetime");
+        }
+
+        public virtual void Configure(EntityTypeBuilder<T> builder)
+        {
+            throw new NotImplementedException();
         }
     }
 }

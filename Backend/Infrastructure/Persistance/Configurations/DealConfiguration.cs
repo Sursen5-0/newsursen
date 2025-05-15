@@ -12,9 +12,9 @@ namespace Infrastructure.Persistance.Configurations
 {
     public class DealConfiguration : BaseEntityConfiguration<Deal>
     {
-        public void Configure(EntityTypeBuilder<Deal> builder)
+        public override void Configure(EntityTypeBuilder<Deal> builder)
         {
-            base.Configure(builder);
+            BaseConfigure(builder);
 
             builder.HasKey(e => e.Id);
 

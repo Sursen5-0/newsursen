@@ -12,9 +12,9 @@ namespace Infrastructure.Persistance.Configurations
 {
     public class EmployeeSkillConfiguration : BaseEntityConfiguration<EmployeeSkill>
     {
-        public void Configure(EntityTypeBuilder<EmployeeSkill> builder)
+        public override void Configure(EntityTypeBuilder<EmployeeSkill> builder)
         {
-            base.Configure(builder);
+            BaseConfigure(builder);
 
             builder.HasKey(e => new { e.EmployeeId, e.SkillId });
 

@@ -12,9 +12,9 @@ namespace Infrastructure.Persistance.Configurations
 {
     public class EmployeeContractConfiguration : BaseEntityConfiguration<EmployeeContract>
     {
-        public void Configure(EntityTypeBuilder<EmployeeContract> builder)
+        public override void Configure(EntityTypeBuilder<EmployeeContract> builder)
         {
-            base.Configure(builder);
+            BaseConfigure(builder);
 
             builder.HasKey(e => e.Id);
 

@@ -11,9 +11,9 @@ namespace Infrastructure.Persistance.Configurations
 {
     public class ProjectEmployeeConfiguration : BaseEntityConfiguration<ProjectEmployee>
     {
-        public void Configure(EntityTypeBuilder<ProjectEmployee> builder)
+        public override void Configure(EntityTypeBuilder<ProjectEmployee> builder)
         {
-            base.Configure(builder);
+            BaseConfigure(builder);
 
             builder.HasKey(e => new { e.EmployeeId, e.ProjectId });
 

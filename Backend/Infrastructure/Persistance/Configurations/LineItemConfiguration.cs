@@ -12,9 +12,9 @@ namespace Infrastructure.Persistance.Configurations
 {
     public class LineItemConfiguration : BaseEntityConfiguration<LineItem>
     {
-        public void Configure(EntityTypeBuilder<LineItem> builder)
+        public override void Configure(EntityTypeBuilder<LineItem> builder)
         {
-            base.Configure(builder);
+            BaseConfigure(builder);
 
             builder.HasKey(e => e.Id);
 

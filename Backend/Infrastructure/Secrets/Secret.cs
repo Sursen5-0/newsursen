@@ -11,6 +11,5 @@ namespace Infrastructure.Secrets
     {
         [JsonPropertyName("raw")]
         public required string Value { get; set; }
-
     }
 }

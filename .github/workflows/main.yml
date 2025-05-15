@@ -31,7 +31,9 @@ jobs:
       run: dotnet build --no-restore --configuration Release
 
     - name: Run Unit Tests
-      run: dotnet test 
+      run: |
+        dotnet test \
+          -collect:"XPlat Code Coverage"
 
     - name: Install ReportGenerator
       run: dotnet tool install -g dotnet-reportgenerator-globaltool

@@ -31,7 +31,15 @@ jobs:
       run: dotnet build --no-restore --configuration Release
 
     - name: Run tests with coverage threshold
-      run: dotnet test Backend/UnitTests/UnitTests.csproj --no-build /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=./TestResults/ /p:Threshold=80 /p:ThresholdType=line /p:ThresholdStat=total
+      run: |
+        dotnet test Backend/UnitTests/UnitTests.csproj --no-build \
+          /p:CollectCoverage=true \
+          /p:CoverletOutputFormat=cobertura \
+          /p:CoverletOutput=./TestResults/ \
+          /p:Threshold=80 \
+          /p:ThresholdType=line \
+          /p:ThresholdStat=total
+
 
 
     - name: Install ReportGenerator

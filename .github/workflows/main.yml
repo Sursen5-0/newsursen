@@ -32,14 +32,14 @@ jobs:
 
     - name: Run tests with coverage threshold
       run: |
-        dotnet test Backend/UnitTests/UnitTests.csproj \
+        dotnet test Backend/UnitTests/UnitTests.csproj --settings coverlet.runsettings \
           -p:CollectCoverage=true \
           -p:CoverletOutputFormat=cobertura \
           -p:CoverletOutput=./TestResults/ \
           -p:Threshold=2 \
           -p:ThresholdType=line \
-          -p:ThresholdStat=total \
-          "-p:Exclude=[Infrastructure]Infrastructure.Persistance.Models.*\;[Infrastructure]Infrastructure.Persistance.Configurations.*"
+          -p:ThresholdStat=total 
+          
 
 
 

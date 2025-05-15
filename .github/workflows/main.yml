@@ -31,7 +31,7 @@ jobs:
       run: dotnet build --no-restore --configuration Release
 
     - name: Run tests with coverage threshold
-      run: dotnet test --no-build \
+      run: dotnet test Backend/UnitTests/UnitTests.csproj --no-build \
         /p:CollectCoverage=true \
         /p:CoverletOutputFormat=cobertura \
         /p:CoverletOutput=./TestResults/ \

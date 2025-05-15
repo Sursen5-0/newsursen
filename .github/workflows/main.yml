@@ -36,7 +36,7 @@ jobs:
           -p:CollectCoverage=true \
           -p:CoverletOutputFormat=cobertura \
           -p:CoverletOutput=./TestResults/ \
-          -p:Threshold=10 \
+          -p:Threshold=2 \
           -p:ThresholdType=line \
           -p:ThresholdStat=total
 

@@ -30,7 +30,7 @@ namespace Infrastructure.Secrets
 
             var response = await _httpClient.GetAsync(url, token.GetValueOrDefault());
             switch (response.StatusCode)
-            {
+        {
                 case System.Net.HttpStatusCode.OK:
                     var result = await response.Content.ReadFromJsonAsync<SecretResponse>();
                     return result!.Secret.Value;

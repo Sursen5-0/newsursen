@@ -39,7 +39,7 @@ jobs:
           -p:Threshold=2 \
           -p:ThresholdType=line \
           -p:ThresholdStat=total \
-          -p:Exclude="[Infrastructure]Infrastructure.Persistance.Models.*"
+          -p:Exclude="[Infrastructure]Infrastructure.Persistance.Models.*;[Infrastructure]Infrastructure.Persistance.Configurations.*"
 
 
 

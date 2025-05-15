@@ -32,7 +32,7 @@ jobs:
 
     - name: Run tests with coverage threshold
       run: |
-        dotnet test Backend/UnitTests/UnitTests.csproj --no-build \
+        dotnet test Backend/UnitTests/UnitTests.csproj \
           -p:CollectCoverage=true \
           -p:CoverletOutputFormat=cobertura \
           -p:CoverletOutput=./TestResults/ \

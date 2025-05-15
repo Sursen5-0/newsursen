@@ -30,10 +30,13 @@ jobs:
     - name: Build Solution
       run: dotnet build --no-restore --configuration Release
 
-    - name: Run Unit Tests
-      run: |
-        dotnet test \
-          -collect:"XPlat Code Coverage"
+    - name: Test with coverage and fail if < 80%
+      run: >
+        dotnet test --no-build
+        --collect:"XPlat Code Coverage"
+        /p:Threshold=80
+        /p:ThresholdType=line
+        /p:ThresholdStat=total
 
     - name: Install ReportGenerator
       run: dotnet tool install -g dotnet-reportgenerator-globaltool

@@ -36,7 +36,7 @@ jobs:
           -f Backend/Hangfire/Dockerfile \
           -t bjand49/sursen-jobs:latest
     - name: Run Unit Tests
-      run: dotnet test --configuration Release --no-build --verbosity normal
+      run: dotnet test --no-build --collect:"XPlat Code Coverage"
 
     - name: Install ReportGenerator
       run: dotnet tool install -g dotnet-reportgenerator-globaltool

@@ -38,7 +38,9 @@ jobs:
           -p:CoverletOutput=./TestResults/ \
           -p:Threshold=2 \
           -p:ThresholdType=line \
-          -p:ThresholdStat=total
+          -p:ThresholdStat=total \
+          -p:Exclude="[Infrastructure]Infrastructure.Persistance.Models.*"
+
 
 
 

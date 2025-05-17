@@ -1,0 +1,13 @@
+<RunSettings>
+  <RunConfiguration>
+    <CoverletSettings>
+      <Exclude>
+        [Infrastructure.Persistance]Infrastructure.Persistance.Models.*
+        [Infrastructure.Persistance]Infrastructure.Persistance.Configurations.*
+      </Exclude>
+      <Threshold>80</Threshold>
+      <ThresholdType>line</ThresholdType>
+      <ThresholdStat>total</ThresholdStat>
+    </CoverletSettings>
+  </RunConfiguration>
+</RunSettings>

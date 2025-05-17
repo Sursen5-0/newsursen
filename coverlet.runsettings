@@ -1,14 +1,13 @@
 <RunSettings>
-  <DataCollectionRunSettings>
-    <DataCollectors>
-      <DataCollector friendlyName="XPlat code coverage">
-        <Configuration>
-          <Exclude>
-            <Type>Infrastructure.Persistance.Models.*</Type>
-            <Type>Infrastructure.Persistance.Configurations.*</Type>
-          </Exclude>
-        </Configuration>
-      </DataCollector>
-    </DataCollectors>
-  </DataCollectionRunSettings>
+  <RunConfiguration>
+    <CoverletSettings>
+      <Exclude>
+        [Infrastructure.Persistance]Infrastructure.Persistance.Models.*
+        [Infrastructure.Persistance]Infrastructure.Persistance.Configurations.*
+      </Exclude>
+      <Threshold>80</Threshold>
+      <ThresholdType>line</ThresholdType>
+      <ThresholdStat>total</ThresholdStat>
+    </CoverletSettings>
+  </RunConfiguration>
 </RunSettings>

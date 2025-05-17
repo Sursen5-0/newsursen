@@ -35,23 +35,16 @@ jobs:
         dotnet test Backend/UnitTests/UnitTests.csproj --settings coverlet.runsettings \
           -p:CollectCoverage=true \
           -p:CoverletOutputFormat=cobertura \
-          -p:CoverletOutput=./TestResults/ \
-          -p:Threshold=2 \
-          -p:ThresholdType=line \
-          -p:ThresholdStat=total 
+          -p:CoverletOutput=./TestResults/
           
-
-
-
-
     - name: Install ReportGenerator
       run: dotnet tool install -g dotnet-reportgenerator-globaltool
 
-    - name: Generate Coverage Report
+    - name: Generate HTML report
       run: |
         reportgenerator \
-          -reports:**/coverage.cobertura.xml \
-          -targetdir:coveragereport \
+          -reports:"./TestResults/coverage.cobertura.xml" \
+          -targetdir:"coverage-report" \
           -reporttypes:Html
 
     - name: Upload Coverage Report Artifact

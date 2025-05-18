@@ -1,4 +1,5 @@
 ﻿using Application.Secrets;
+using Infrastructure.Severa;
 
 namespace Hangfire.Jobs
 {
@@ -7,7 +8,8 @@ namespace Hangfire.Jobs
         public void WriteTest()
         {
             _logger.LogInformation("making call");
-            var key = _secretClient.GetSecretAsync("test").Result;
+            var client = new SeveraClient(_secretClient);
+            var key = client.GetTokenTest();
             _logger.LogInformation($"got secret for test:{key}");
         }
     }

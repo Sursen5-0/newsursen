@@ -2,6 +2,7 @@ using Application.Secrets;
 using Hangfire;
 using Hangfire.Jobs;
 using Infrastructure.Secrets;
+using Infrastructure.Severa;
 using Serilog;
 using Serilog.Events;
 
@@ -28,6 +29,14 @@ builder.Services.AddScoped<ISecretClient,DopplerClient>(provider =>
     var token = Environment.GetEnvironmentVariable("doppler_key", EnvironmentVariableTarget.Machine);
     var environment = Environment.GetEnvironmentVariable("Environment", EnvironmentVariableTarget.Machine);
     return new DopplerClient(httpclient, token, environment);
+});
+builder.Services.AddScoped<SeveraClient>(provider =>
+{
+    var httpclient = provider.GetRequiredService<HttpClient>();
+    var secretClient = provider.GetRequiredService<DopplerClient>();
+    var token = Environment.GetEnvironmentVariable("doppler_key", EnvironmentVariableTarget.Machine);
+    var environment = Environment.GetEnvironmentVariable("Environment", EnvironmentVariableTarget.Machine);
+    return new SeveraClient(secretClient, httpclient);
 });
 builder.Services.AddLogging(loggingbuilder =>
 {

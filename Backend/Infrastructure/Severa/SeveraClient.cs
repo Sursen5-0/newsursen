@@ -18,9 +18,6 @@ namespace Infrastructure.Severa
         private readonly string _severaClientSecret;
         private static readonly string SCOPE = "users:read,hours:read";
         private static readonly string SEVERA_ROOT_URL = "https://api.severa.visma.com/rest-api/v1.0";
-        private static readonly Guid TWODAY_MINDS_GUID_EAST = new("9d9aad20-1420-b917-8b3b-9a4538c89c79");
-        private static readonly Guid TWODAY_MINDS_GUID_WEST = new("838a53b4-3283-85dd-9b30-e41f03c50a9f");
-        private static readonly List<Guid> TWODAY_MINDS_GUIDS = [];
         private static readonly string SEVERA_CLIENT_SECRET = "SEVERA_CLIENT_SECRET";
         private static readonly string SEVERA_CLIENT_ID = "SEVERA_CLIENT_ID";
         private readonly HttpClient _client;
@@ -34,16 +31,11 @@ namespace Infrastructure.Severa
             }
         }
 
-        public SeveraClient(ISecretClient secretClient)
+        public SeveraClient(ISecretClient secretClient, HttpClient httpClient)
         {
             _severaClientId = secretClient.GetSecretAsync(SEVERA_CLIENT_ID).Result;
             _severaClientSecret = secretClient.GetSecretAsync(SEVERA_CLIENT_SECRET).Result;
-            _client = new HttpClient(new RetryHandler(new HttpClientHandler()));
-            if (TWODAY_MINDS_GUIDS.Count == 0)
-            {
-                TWODAY_MINDS_GUIDS.Add(TWODAY_MINDS_GUID_WEST);
-                TWODAY_MINDS_GUIDS.Add(TWODAY_MINDS_GUID_EAST);
-            }
+            _client = httpClient;
         }
         public string GetTokenTest()
         {

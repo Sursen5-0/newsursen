@@ -3,6 +3,8 @@
     <CoverletSettings>
       <Exclude>
         [Infrastructure.Persistance]Infrastructure.Persistance.Models.*
+      </Exclude>
+      <Exclude>
         [Infrastructure.Persistance]Infrastructure.Persistance.Configurations.*
       </Exclude>
       <Threshold>80</Threshold>

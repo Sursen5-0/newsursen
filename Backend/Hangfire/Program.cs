@@ -2,8 +2,16 @@ using Application.Secrets;
 using Hangfire;
 using Hangfire.Jobs;
 using Infrastructure.Secrets;
+using Infrastructure.Severa;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Serilog.Events;
+
+var token = Environment.GetEnvironmentVariable("doppler_key", EnvironmentVariableTarget.Machine);
+var environment = Environment.GetEnvironmentVariable("Environment", EnvironmentVariableTarget.Machine);
+ArgumentNullException.ThrowIfNull(token);
+ArgumentNullException.ThrowIfNull(environment);
+
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
@@ -25,9 +33,15 @@ builder.Services.AddScoped<TestJob>();
 builder.Services.AddScoped<ISecretClient,DopplerClient>(provider =>
 {
     var httpclient = provider.GetRequiredService<HttpClient>();
-    var token = Environment.GetEnvironmentVariable("doppler_key", EnvironmentVariableTarget.Machine);
-    var environment = Environment.GetEnvironmentVariable("Environment", EnvironmentVariableTarget.Machine);
+
     return new DopplerClient(httpclient, token, environment);
+});
+builder.Services.AddScoped<SeveraClient>(provider =>
+{
+    var secretClient = provider.GetRequiredService<ISecretClient>();
+    var logger = provider.GetRequiredService<ILogger<RetryHandler>>();
+    var httpclient = new HttpClient(new RetryHandler(new HttpClientHandler(), logger));
+    return new SeveraClient(secretClient, httpclient);
 });
 builder.Services.AddLogging(loggingbuilder =>
 {

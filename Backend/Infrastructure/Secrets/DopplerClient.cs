@@ -13,9 +13,10 @@ namespace Infrastructure.Secrets
         private readonly string _project = "sursen";
         public DopplerClient(HttpClient httpClient,string doppler_key, string environment)
         {
+            ArgumentNullException.ThrowIfNull(httpClient);
             ArgumentNullException.ThrowIfNull(doppler_key);
             ArgumentNullException.ThrowIfNull(environment);
-            ArgumentNullException.ThrowIfNull(httpClient);
+
             _environment = environment;
             _httpClient = httpClient;
 

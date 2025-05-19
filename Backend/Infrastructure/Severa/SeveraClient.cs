@@ -22,14 +22,6 @@ namespace Infrastructure.Severa
         private static readonly string SEVERA_CLIENT_ID = "SEVERA_CLIENT_ID";
         private readonly HttpClient _client;
         private string? _token;
-        public string Token
-        {
-            get
-            {
-                _token ??= GetToken().Result;
-                return _token;
-            }
-        }
 
         public SeveraClient(ISecretClient secretClient, HttpClient httpClient)
         {
@@ -37,12 +29,10 @@ namespace Infrastructure.Severa
             _severaClientSecret = secretClient.GetSecretAsync(SEVERA_CLIENT_SECRET).Result;
             _client = httpClient;
         }
-        public string GetTokenTest()
+        public async Task<string> GetToken()
         {
-            return GetToken().Result;
-        }
-        private async Task<string> GetToken()
-        {
+            if (_token != null)
+                return _token;
             var tokenBody = new TokenBody()
             {
                 ClientId = _severaClientId,

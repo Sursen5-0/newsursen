@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Infrastructure.Severa.Models
 {
-    internal class TokenReturnModel
+    public class TokenReturnModel
     {
         [JsonPropertyName("access_token")]
         public string AccessToken { get; set; } = null!;

@@ -14,6 +14,9 @@ namespace Infrastructure.Secrets
         public DopplerClient(HttpClient httpClient,string doppler_key, string environment)
         {
             ArgumentNullException.ThrowIfNull(httpClient);
+            ArgumentNullException.ThrowIfNull(doppler_key);
+            ArgumentNullException.ThrowIfNull(environment);
+
             _environment = environment;
             _httpClient = httpClient;
 

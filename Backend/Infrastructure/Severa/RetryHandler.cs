@@ -11,7 +11,7 @@ namespace Infrastructure.Severa
     {
         private const int MAX_RETRIES = 3;
         private const int MESSAGE_DELAY_MS = 1000;
-        private static readonly int[] NonRetriableStatusCodes = { 400, 401, 403, 404 };
+        private static readonly int[] NonRetriableStatusCodes = [400, 401, 403, 404];
 
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)

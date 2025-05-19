@@ -21,7 +21,7 @@ namespace Infrastructure.Severa
         private static readonly string SEVERA_CLIENT_SECRET = "SEVERA_CLIENT_SECRET";
         private static readonly string SEVERA_CLIENT_ID = "SEVERA_CLIENT_ID";
         private readonly HttpClient _client;
-        private string? _token;
+        private string? _token = null;
 
         public SeveraClient(ISecretClient secretClient, HttpClient httpClient)
         {
@@ -51,7 +51,8 @@ namespace Infrastructure.Severa
             {
                 throw new SerializationException($"Unable to convert tokenresponse to expected format");
             }
-            return responseBody.AccessToken;
+            _token = responseBody.AccessToken;
+            return _token;
         }
     }
 }

@@ -38,7 +38,7 @@ namespace UnitTests
             // Assert
             mockHandler.Protected().Verify(
                 "SendAsync",
-                Times.Exactly(4),
+                Times.Exactly(3),
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             );

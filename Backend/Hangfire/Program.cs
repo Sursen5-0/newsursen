@@ -6,6 +6,7 @@ using Infrastructure.Severa;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Serilog.Events;
+using System.Net.Http.Headers;
 
 var token = Environment.GetEnvironmentVariable("doppler_key", EnvironmentVariableTarget.Machine);
 var environment = Environment.GetEnvironmentVariable("Environment", EnvironmentVariableTarget.Machine);
@@ -30,19 +31,22 @@ builder.Services.AddHangfire(config =>
 builder.Services.AddHangfireServer();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<TestJob>();
-builder.Services.AddScoped<ISecretClient,DopplerClient>(provider =>
-{
-    var httpclient = provider.GetRequiredService<HttpClient>();
+builder.Services.AddScoped<WorkContractJob>();
 
-    return new DopplerClient(httpclient, token, environment);
-});
-builder.Services.AddScoped<SeveraClient>(provider =>
+builder.Services.AddScoped<ISecretClient, DopplerClient>(provider =>
 {
-    var secretClient = provider.GetRequiredService<ISecretClient>();
-    var logger = provider.GetRequiredService<ILogger<RetryHandler>>();
-    var httpclient = new HttpClient(new RetryHandler(new HttpClientHandler(), logger));
-    return new SeveraClient(secretClient, httpclient);
+    var clientFactory = provider.GetRequiredService<IHttpClientFactory>();
+    var httpClient = clientFactory.CreateClient("doppler");
+    httpClient.BaseAddress = new Uri("https://api.doppler.com/v3/");
+    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+    return new DopplerClient(httpClient, token, environment);
 });
+builder.Services.AddHttpClient<SeveraClient>()
+    .ConfigurePrimaryHttpMessageHandler(provider =>
+    {
+        var logger = provider.GetRequiredService<ILogger<RetryHandler>>();
+        return new RetryHandler(new HttpClientHandler(), logger);
+    });
 builder.Services.AddLogging(loggingbuilder =>
 {
     loggingbuilder.ClearProviders()
@@ -55,12 +59,17 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var jobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
-    var service = scope.ServiceProvider.GetRequiredService<TestJob>();
+
     jobManager.AddOrUpdate(
-        "my-recurring-job",
-        () => service.WriteTest(), 
+        "TestJob",
+        () => scope.ServiceProvider.GetRequiredService<TestJob>().WriteTest(),
         Cron.Minutely);
+    jobManager.AddOrUpdate(
+        "WorkContractJob",
+        () => scope.ServiceProvider.GetRequiredService<WorkContractJob>().Run(),
+        Cron.Minutely);
+
 }
 
-app.UseHangfireDashboard(); 
+app.UseHangfireDashboard();
 app.Run();

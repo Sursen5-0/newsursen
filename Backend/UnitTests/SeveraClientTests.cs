@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Application.Secrets;
 using Infrastructure.Severa;
 using Infrastructure.Severa.Models;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.Protected;
 using Xunit;
@@ -15,8 +16,10 @@ namespace UnitTests
     public class SeveraClientTests
     {
         private static Mock<ISecretClient> secretClientMock = null!;
+        private static Mock<ILogger<SeveraClient>> secretClientLogMock = null!;
         public SeveraClientTests()
         {
+            secretClientLogMock = new Mock<ILogger<SeveraClient>>();
             secretClientMock = new Mock<ISecretClient>();
             secretClientMock.Setup(s => s.GetSecretAsync("SEVERA_CLIENT_ID", It.IsAny<CancellationToken?>())).ReturnsAsync("test-client-id");
             secretClientMock.Setup(s => s.GetSecretAsync("SEVERA_CLIENT_SECRET", It.IsAny<CancellationToken?>())).ReturnsAsync("test-client-secret");
@@ -42,7 +45,7 @@ namespace UnitTests
                 .ReturnsAsync(responseMessage);
 
             var httpClient = new HttpClient(mockHandler.Object);
-            var severaClient = new SeveraClient(secretClientMock.Object, httpClient);
+            var severaClient = new SeveraClient(secretClientMock.Object, httpClient, secretClientLogMock.Object);
 
             // Act
             var token = await severaClient.GetToken();
@@ -73,7 +76,7 @@ namespace UnitTests
             secretClientMock.Setup(s => s.GetSecretAsync(It.IsAny<string>(), It.IsAny<CancellationToken?>()))
                 .ReturnsAsync("dummy");
 
-            var client = new SeveraClient(secretClientMock.Object, httpClient);
+            var client = new SeveraClient(secretClientMock.Object, httpClient, secretClientLogMock.Object);
 
             // Act & Assert
             await Assert.ThrowsAsync<HttpRequestException>(() => client.GetToken());
@@ -101,7 +104,7 @@ namespace UnitTests
             var secretClientMock = new Mock<ISecretClient>();
             secretClientMock.Setup(s => s.GetSecretAsync(It.IsAny<string>(), It.IsAny<CancellationToken?>())).ReturnsAsync("dummy");
 
-            var client = new SeveraClient(secretClientMock.Object, httpClient);
+            var client = new SeveraClient(secretClientMock.Object, httpClient, secretClientLogMock.Object);
 
             // Act
             var firstToken = await client.GetToken();

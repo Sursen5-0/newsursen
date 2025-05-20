@@ -6,6 +6,7 @@ using Moq;
 using Moq.Protected;
 using Microsoft.Extensions.Logging;
 using System.Net.Http;
+using static System.Net.WebRequestMethods;
 
 namespace UnitTests
 {
@@ -38,7 +39,7 @@ namespace UnitTests
                 });
 
             var httpClient = new HttpClient(handlerMock.Object);
-
+            httpClient.BaseAddress = new Uri("https://example.com");
             var dopplerClient = new DopplerClient(httpClient, "TEST", "TEST");
 
             // Act
@@ -75,6 +76,7 @@ namespace UnitTests
                 .ReturnsAsync(new HttpResponseMessage { StatusCode = statusCode });
 
             var client = new HttpClient(mockHandler.Object);
+            client.BaseAddress = new Uri("https://example.com");
 
             var dopplerClient = new DopplerClient(client, "TEST", "TEST");
             // Act & Assert

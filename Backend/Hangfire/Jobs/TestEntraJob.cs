@@ -14,7 +14,7 @@ namespace Hangfire.Jobs
             _logger = logger;
         }
 
-        public async Task WriteTest()
+        public async Task WriteTestToken()
         {
             try
             {

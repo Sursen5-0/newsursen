@@ -1,3 +1,4 @@
+using System;
 using Application.Secrets;
 using Hangfire;
 using Hangfire.Common;
@@ -6,13 +7,16 @@ using Infrastructure.Entra;
 using Infrastructure.Secrets;
 using Infrastructure.Severa;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Hosting;
 
-var token = Environment.GetEnvironmentVariable("doppler_key", EnvironmentVariableTarget.Machine);
+var dopplerKey = Environment.GetEnvironmentVariable("doppler_key", EnvironmentVariableTarget.Machine);
 var environment = Environment.GetEnvironmentVariable("Environment", EnvironmentVariableTarget.Machine);
-ArgumentNullException.ThrowIfNull(token);
-ArgumentNullException.ThrowIfNull(environment);
+ArgumentNullException.ThrowIfNull(dopplerKey, nameof(dopplerKey));
+ArgumentNullException.ThrowIfNull(environment, nameof(environment));
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
@@ -24,47 +28,43 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Host.UseSerilog();
 
 builder.Services.AddHangfire(config =>
 {
-    config.UseInMemoryStorage(); // Use in-memory storage for demo purposes
+    config.UseInMemoryStorage();
     config.UseSerilogLogProvider();
 });
 builder.Services.AddHangfireServer();
+
 builder.Services.AddHttpClient();
 
-builder.Services.AddScoped<TestJob>();
 builder.Services.AddScoped<ISecretClient, DopplerClient>(provider =>
 {
-    var httpclient = provider.GetRequiredService<HttpClient>();
-    return new DopplerClient(httpclient, token, environment);
+    var httpClient = provider.GetRequiredService<HttpClient>();
+    return new DopplerClient(httpClient, dopplerKey, environment);
 });
+
 builder.Services.AddScoped<SeveraClient>(provider =>
 {
     var secretClient = provider.GetRequiredService<ISecretClient>();
     var logger = provider.GetRequiredService<ILogger<RetryHandler>>();
-    var httpclient = new HttpClient(new RetryHandler(new HttpClientHandler(), logger));
-    return new SeveraClient(secretClient, httpclient);
+    var httpClient = new HttpClient(new RetryHandler(new HttpClientHandler(), logger));
+    return new SeveraClient(secretClient, httpClient);
 });
 
-// Register EntraClient using secrets for tenant, client ID and secret
+builder.Services.AddTransient<EntraRetryHandler>();
+
 builder.Services.AddScoped<EntraClient>(provider =>
 {
     var secretClient = provider.GetRequiredService<ISecretClient>();
-    var httpClient = provider.GetRequiredService<HttpClient>();
-    return new EntraClient(secretClient, httpClient);
+    var retryLogger = provider.GetRequiredService<ILogger<EntraRetryHandler>>();
+    return new EntraClient(secretClient, retryLogger);
 });
 
-// Register the test Entra job
+builder.Services.AddScoped<TestJob>();
 builder.Services.AddScoped<TestEntraJob>();
-
-builder.Services.AddLogging(loggingbuilder =>
-{
-    loggingbuilder.ClearProviders()
-        .SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace)
-        .AddConsole();
-});
-builder.Services.AddSerilog();
+builder.Services.AddScoped<FetchGraphUsersJob>();
 
 var app = builder.Build();
 
@@ -72,18 +72,20 @@ using (var scope = app.Services.CreateScope())
 {
     var jobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
 
-    // Existing recurring job for TestJob
-    var service = scope.ServiceProvider.GetRequiredService<TestJob>();
-    jobManager.AddOrUpdate(
+    jobManager.AddOrUpdate<TestJob>(
         "my-recurring-job",
-        () => service.WriteTest(),
+        job => job.WriteTest(),
         Cron.Minutely);
 
-    // Recurring job for TestEntraJob
     jobManager.AddOrUpdate<TestEntraJob>(
-      "entra-token-job",
-      job => job.WriteTest(),
-      Cron.Minutely);
+        "entra-token-job",
+        job => job.WriteTestToken(),
+        Cron.Minutely);
+
+    jobManager.AddOrUpdate<FetchGraphUsersJob>(
+        "graph-users-job",
+        job => job.WriteGraphUsers(),
+        Cron.Minutely);
 }
 
 app.UseHangfireDashboard();

@@ -16,7 +16,7 @@ namespace Infrastructure.Severa
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            HttpResponseMessage? response = null;
+            HttpResponseMessage response = null!;
 
             for (int attempt = 1; attempt <= MAX_RETRIES; attempt++)
             {

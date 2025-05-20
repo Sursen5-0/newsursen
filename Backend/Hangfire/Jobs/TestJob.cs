@@ -1,4 +1,4 @@
-﻿using Application.Secrets;
+﻿using Domain.Interfaces;
 using Infrastructure.Severa;
 
 namespace Hangfire.Jobs

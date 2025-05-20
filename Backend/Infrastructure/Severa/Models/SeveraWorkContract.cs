@@ -12,12 +12,14 @@ namespace Infrastructure.Severa.Models
         [JsonPropertyName("guid")]
         public Guid Id { get; set; }
         [JsonPropertyName("title")]
-        public string Title { get; set; }
+        public required string Title { get; set; }
         [JsonPropertyName("startDate")]
         public DateTime StartDate { get; set; }
         [JsonPropertyName("endDate")]
         public DateTime? EndDate { get; set; }
         [JsonPropertyName("dailyHours")]
-        public double DailyHours { get; set; }
+        public decimal DailyHours { get; set; }
+        [JsonPropertyName("workWeek")]
+        public string[]? WorkDays { get; set; }
     }
 }

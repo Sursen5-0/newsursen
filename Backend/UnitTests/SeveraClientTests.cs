@@ -4,7 +4,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Application.Secrets;
+using Domain.Interfaces.ExternalClients;
 using Infrastructure.Severa;
 using Infrastructure.Severa.Models;
 using Microsoft.Extensions.Logging;

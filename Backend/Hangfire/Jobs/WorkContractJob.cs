@@ -8,7 +8,7 @@ namespace Hangfire.Jobs
         public void Run()
         {
             var item = severaClient.GetWorkContractByUserId(Guid.Parse("3189d3d2-4671-b3c4-fbb8-6aa4cfc0933a")).Result;
-            _logger.LogInformation(item.Data.First().Title);
+            _logger.LogInformation(item.Title);
 
         }
     }

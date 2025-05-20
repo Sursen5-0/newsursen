@@ -1,5 +1,5 @@
-﻿using Application.Secrets;
-using Azure;
+﻿using Domain.Interfaces.ExternalClients;
+using Domain.Models;
 using Infrastructure.Severa.Models;
 using Microsoft.Extensions.Logging;
 using System;
@@ -10,7 +10,7 @@ using System.Linq;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Runtime.Serialization;
-using System.Text;
+using Infrastructure.Severa.Mappers;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -60,9 +60,23 @@ namespace Infrastructure.Severa
             _token = responseBody.AccessToken;
             return _token;
         }
-        public async Task<SeveraReturnModel<List<SeveraWorkContract>>> GetWorkContractByUserId(Guid userId)
+        public async Task<EmployeeContractDTO> GetWorkContractByUserId(Guid userId)
         {
-            return await GetEntityByID<List<SeveraWorkContract>>($"users/{userId}/workcontracts");
+            var response = await GetEntityByID<SeveraWorkContract>($"users/{userId}/workcontracts/current");
+            if(!response.IsSuccess)
+            {
+                var message = $"Severa client was unable to get workcontract, returned HTTP {response.StatusCode}";
+                _logger.LogError(message);
+                throw new HttpRequestException(message);
+            }
+            else if(response.Data == null)
+            {
+                var message = $"Severa was able to get workcontract, but returned empty response";
+                _logger.LogError(message);
+                throw new HttpRequestException(message);
+            }
+            var contract = response.Data.ToDto(userId);
+            return contract;
         }
 
         private async Task<SeveraReturnModel<T>> GetEntityByID<T>(string path)
@@ -72,6 +86,7 @@ namespace Infrastructure.Severa
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await GetToken());
             var responseMessage = await _client.SendAsync(request); var returnModel = new SeveraReturnModel<T>();
             var apiResponse = await responseMessage.Content.ReadAsStringAsync();
+            returnModel.IsSuccess = responseMessage.IsSuccessStatusCode;
             if (!responseMessage.IsSuccessStatusCode)
             {
                 returnModel.Message = apiResponse;
@@ -82,7 +97,7 @@ namespace Infrastructure.Severa
                 {
                     returnModel.Data = JsonSerializer.Deserialize<T>(apiResponse);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     _logger.LogError(@$"Unable to deserialize the following data into into {typeof(T).Name}:
                     {apiResponse}");

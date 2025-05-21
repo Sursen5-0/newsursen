@@ -2,7 +2,6 @@
 using Domain.Interfaces.Repositories;
 using Domain.Interfaces.Services;
 using Domain.Models;
-using Infrastructure.Severa;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Linq;

@@ -24,11 +24,11 @@ namespace UnitTests.Repositories
 
         public EmployeeRepositoryTests()
         {
-            var options = new DbContextOptionsBuilder<SursenContext>().UseSqlite("DataSource=:memory:");
             _logger = new Mock<ILogger<EmployeeRepository>>();
-            _context = new SursenContext(options.Options);
-            _context.Database.OpenConnection();
-            _context.Database.Migrate();
+            var options = new DbContextOptionsBuilder<SursenContext>()
+                .UseInMemoryDatabase("Sursen")
+                .Options;
+            _context = new SursenContext(options);
             sut = new EmployeeRepository(_context, _logger.Object);
         }
 
@@ -50,7 +50,25 @@ namespace UnitTests.Repositories
             var validEmployeeId = Guid.NewGuid();
             var unknownEmployeeId = Guid.NewGuid();
 
-            _context.Employees.Add(new Employee { Id = validEmployeeId });
+            _context.Employees.Add(new Employee
+            {
+                Birthdate = DateOnly.MinValue,
+                BusinessUnitId = Guid.NewGuid(),
+                CreatedAt = DateTime.UtcNow,
+                EntraId = Guid.NewGuid(),
+                FirstName = "Test",
+                LastName = "Test",
+                FlowCaseId = "test",
+                HireDate = DateOnly.MinValue,
+                HubSpotId = "test",
+                LeaveDate = DateOnly.MinValue,
+                Id = validEmployeeId,
+                ManagerId = Guid.NewGuid(),
+                UpdatedAt = DateTime.UtcNow,
+                WorkPhoneNumber = "",
+                SeveraId = Guid.NewGuid(),
+                PersonalPhoneNumber = "",
+            });
             await _context.SaveChangesAsync();
 
             var contracts = new List<EmployeeContractDTO>

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Hangfire.Jobs
 {
-    public record TestJob(EntraClient severaClient, ILogger<TestJob> _logger)
+    public class TestJob(EntraClient severaClient, ILogger<TestJob> _logger)
     {
         public async Task WriteTest()
         {

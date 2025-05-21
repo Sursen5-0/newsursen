@@ -70,8 +70,6 @@ builder.Services.AddScoped<EntraClient>(provider =>
 
 // Jobs
 builder.Services.AddScoped<TestJob>();
-builder.Services.AddScoped<TestEntraJob>();
-builder.Services.AddScoped<FetchGraphUsersJob>();
 
 var app = builder.Build();
 

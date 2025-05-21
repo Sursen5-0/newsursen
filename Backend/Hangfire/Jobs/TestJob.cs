@@ -1,5 +1,4 @@
-﻿using Application.Secrets;
-using Infrastructure.Severa;
+﻿// TestJob.cs
 using Infrastructure.Entra;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
@@ -7,27 +6,18 @@ using System.Threading.Tasks;
 
 namespace Hangfire.Jobs
 {
-    public class TestJob
+    public record TestJob(EntraClient severaClient, ILogger<TestJob> _logger)
     {
-        private readonly EntraClient _severaClient;
-        private readonly ILogger<TestJob> _logger;
-
-        public TestJob(EntraClient severaClient, ILogger<TestJob> logger)
-        {
-            _severaClient = severaClient;
-            _logger = logger;
-        }
-
         public async Task WriteTest()
         {
             _logger.LogInformation("making call");
 
             // Call the client to get the users JSON
-            var json = await _severaClient.GetUsersJsonAsync();
+            var json = await severaClient.GetUsersJsonAsync();
 
             _logger.LogInformation($"got users JSON: {json}");
 
-            // Write the raw JSON to the Visual Studio Output (Debug) window
+            // Debug output
             Debug.WriteLine("Users JSON:");
             Debug.WriteLine(json);
         }

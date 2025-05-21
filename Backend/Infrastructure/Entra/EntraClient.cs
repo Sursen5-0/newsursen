@@ -1,4 +1,5 @@
-﻿using Application.Secrets;
+﻿
+using Application.Secrets;
 using Infrastructure.Entra.Models;
 using Microsoft.Extensions.Logging;
 using System;

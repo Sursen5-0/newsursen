@@ -1,17 +1,12 @@
-using System;
 using Application.Secrets;
 using Hangfire;
-using Hangfire.Common;
 using Hangfire.Jobs;
 using Infrastructure.Secrets;
 using Infrastructure.Severa;
 using Infrastructure.Entra;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Hosting;
 
 var token = Environment.GetEnvironmentVariable("doppler_key", EnvironmentVariableTarget.Machine);
 var environment = Environment.GetEnvironmentVariable("Environment", EnvironmentVariableTarget.Machine);
@@ -42,7 +37,7 @@ builder.Services.AddSerilog();
 // — Hangfire setup
 builder.Services.AddHangfire(config =>
 {
-    config.UseInMemoryStorage();   // demo storage
+    config.UseInMemoryStorage();   // Use in-memory storage for demo purposes
     config.UseSerilogLogProvider();
 });
 builder.Services.AddHangfireServer();

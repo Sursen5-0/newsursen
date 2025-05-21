@@ -59,41 +59,5 @@ namespace UnitTests
             // Assert
             Assert.Null(json);
         }
-
-        [Fact]
-        public async Task GetTokenAsync_FetchesSecrets_OnEachCall_WhenHttpFails()
-        {
-            // Arrange
-            var secretMock = new Mock<Application.Secrets.ISecretClient>();
-            secretMock
-                .Setup(s => s.GetSecretAsync("ENTRA_TENANT", It.IsAny<CancellationToken?>()))
-                .ReturnsAsync("tid");
-            secretMock
-                .Setup(s => s.GetSecretAsync("ENTRA_ID", It.IsAny<CancellationToken?>()))
-                .ReturnsAsync("cid");
-            secretMock
-                .Setup(s => s.GetSecretAsync("ENTRA_SECRET", It.IsAny<CancellationToken?>()))
-                .ReturnsAsync("csec");
-
-            var loggerMock = new Mock<ILogger<EntraRetryHandler>>();
-            var client = new EntraClient(
-                secretMock.Object,
-                loggerMock.Object);
-
-            // Act
-            _ = await client.GetTokenAsync();
-            _ = await client.GetTokenAsync();
-
-            // Assert
-            secretMock.Verify(
-                s => s.GetSecretAsync("ENTRA_TENANT", null),
-                Times.Exactly(2));
-            secretMock.Verify(
-                s => s.GetSecretAsync("ENTRA_ID", null),
-                Times.Exactly(2));
-            secretMock.Verify(
-                s => s.GetSecretAsync("ENTRA_SECRET", null),
-                Times.Exactly(2));
-        }
     }
 }

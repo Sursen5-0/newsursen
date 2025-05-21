@@ -54,7 +54,6 @@ namespace Infrastructure.Entra
 
             _logger.LogError("All {Max} retries exhausted for {Url}", MAX_RETRIES, request.RequestUri);
 
-            // Last attempt – propagate any exception or return last response
             return await base.SendAsync(request, cancellationToken);
         }
     }

@@ -1,8 +1,10 @@
 using Domain.Interfaces.ExternalClients;
 using Hangfire;
 using Hangfire.Jobs;
+using Infrastructure.Persistance;
 using Infrastructure.Secrets;
 using Infrastructure.Severa;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Serilog.Events;
@@ -31,7 +33,14 @@ builder.Services.AddHangfire(config =>
 builder.Services.AddHangfireServer();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<TestJob>();
-builder.Services.AddScoped<WorkContractJob>();
+builder.Services.AddDbContext<SursenContext>((services, options) =>
+{
+    var secretClient = services.GetRequiredService<ISecretClient>();
+    var connectionString = secretClient.GetSecretAsync("CONNECTIONSTRING").Result;
+    options.UseSqlServer(connectionString,
+    b => b.MigrationsAssembly("Infrastructure"));
+});
+
 
 builder.Services.AddScoped<ISecretClient, DopplerClient>(provider =>
 {

@@ -13,6 +13,7 @@ using System.Runtime.Serialization;
 using Infrastructure.Severa.Mappers;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Net;
 
 namespace Infrastructure.Severa
 {
@@ -62,7 +63,7 @@ namespace Infrastructure.Severa
         }
         public async Task<EmployeeContractDTO> GetWorkContractByUserId(Guid userId)
         {
-            var response = await GetEntityByID<SeveraWorkContract>($"users/{userId}/workcontracts/current");
+            var response = await GetEntity<SeveraWorkContract>($"users/{userId}/workcontracts/current");
             if (!response.IsSuccess)
             {
                 var message = $"Severa client was unable to get workcontract, returned HTTP {response.StatusCode}";
@@ -78,8 +79,32 @@ namespace Infrastructure.Severa
             var contract = response.Data.ToDto(userId);
             return contract;
         }
-
-        private async Task<SeveraReturnModel<T>> GetEntityByID<T>(string path)
+        public async Task<SeveraEmployeeModel?> GetUserByEmail(string email)
+        {
+            var list = new List<SeveraEmployeeModel>();
+            var response = await GetEntity<List<SeveraEmployeeModel>>($"users?email={email}");
+            if (!response.IsSuccess && response.StatusCode == HttpStatusCode.NotFound)
+            {
+                _logger.LogError($"Unable to find user with email: {email} in severa");
+                return null;
+            }
+            else if (!response.IsSuccess)
+            {
+                _logger.LogError($"Severa returned {response.Message} in get user by email");
+                return null;
+            }
+            else if (response.Data == null)
+            {
+                _logger.LogError($"Severa returned no error for call for user, but didnt return any data");
+                return null;
+            }
+            else if (response.Data.Count > 1)
+            {
+                _logger.LogError($"Severa returned more than one user for the email. Returning the first");
+            }
+            return response.Data.FirstOrDefault();
+        }
+        private async Task<SeveraReturnModel<T>> GetEntity<T>(string path)
         {
             var pathCombined = SEVERA_ROOT_URL + path;
             var request = new HttpRequestMessage(HttpMethod.Get, pathCombined);
@@ -107,5 +132,7 @@ namespace Infrastructure.Severa
             returnModel.StatusCode = responseMessage.StatusCode;
             return returnModel;
         }
+
+
     }
 }

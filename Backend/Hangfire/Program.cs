@@ -1,7 +1,11 @@
+using Application.Services;
 using Domain.Interfaces.ExternalClients;
+using Domain.Interfaces.Repositories;
+using Domain.Interfaces.Services;
 using Hangfire;
 using Hangfire.Jobs;
 using Infrastructure.Persistance;
+using Infrastructure.Persistance.Repositories;
 using Infrastructure.Secrets;
 using Infrastructure.Severa;
 using Microsoft.EntityFrameworkCore;
@@ -33,6 +37,9 @@ builder.Services.AddHangfire(config =>
 builder.Services.AddHangfireServer();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<TestJob>();
+builder.Services.AddScoped<IEmployeeService,EmployeeService>(); 
+builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>(); 
+builder.Services.AddScoped<SeveraJobs>();
 builder.Services.AddDbContext<SursenContext>((services, options) =>
 {
     var secretClient = services.GetRequiredService<ISecretClient>();
@@ -50,7 +57,7 @@ builder.Services.AddScoped<ISecretClient, DopplerClient>(provider =>
     httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
     return new DopplerClient(httpClient, token, environment);
 });
-builder.Services.AddHttpClient<SeveraClient>()
+builder.Services.AddHttpClient<ISeveraClient,SeveraClient>()
     .ConfigurePrimaryHttpMessageHandler(provider =>
     {
         var logger = provider.GetRequiredService<ILogger<RetryHandler>>();
@@ -59,7 +66,7 @@ builder.Services.AddHttpClient<SeveraClient>()
 builder.Services.AddLogging(loggingbuilder =>
 {
     loggingbuilder.ClearProviders()
-    .SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace)
+    .SetMinimumLevel(LogLevel.Trace)
     .AddConsole();
 });
 builder.Services.AddSerilog();
@@ -74,9 +81,11 @@ using (var scope = app.Services.CreateScope())
         () => scope.ServiceProvider.GetRequiredService<TestJob>().WriteTest(),
         Cron.Minutely);
     jobManager.AddOrUpdate(
-        "WorkContractJob",
-        () => scope.ServiceProvider.GetRequiredService<WorkContractJob>().Run(),
-        Cron.Minutely);
+        "SynchronizeEmployees",
+        () => scope.ServiceProvider.GetRequiredService<SeveraJobs>().SynchronizeEmployees(), "0 0 31 2 *");
+    jobManager.AddOrUpdate(
+        "SynchronizeContracts",
+        () => scope.ServiceProvider.GetRequiredService<SeveraJobs>().SynchronizeContracts(), "0 0 31 2 *");
 
 }
 

@@ -1,9 +1,10 @@
 ﻿using Domain.Interfaces;
+using Domain.Interfaces.ExternalClients;
 using Infrastructure.Severa;
 
 namespace Hangfire.Jobs
 {
-    public class TestJob(SeveraClient severaClient, ILogger<TestJob> _logger)
+    public class TestJob(ISeveraClient severaClient, ILogger<TestJob> _logger)
     {
         public void WriteTest()
         {

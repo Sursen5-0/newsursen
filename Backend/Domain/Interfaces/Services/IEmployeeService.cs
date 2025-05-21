@@ -10,5 +10,6 @@ namespace Domain.Interfaces.Services
     public interface IEmployeeService
     {
         public Task SynchronizeContracts();
+        public Task SynchronizeUnmappedSeveraIds();
     }
 }

@@ -15,6 +15,8 @@ namespace Infrastructure.Persistance.Mappers
             return new EmployeeDTO
             {
                 Id = employee.Id,
+                Email = employee.Email,
+                SeveraId = employee.SeveraId
             };
         }
     }

@@ -18,11 +18,11 @@ namespace Infrastructure.Persistance.Repositories
             ArgumentNullException.ThrowIfNull(employeeContractDtos);
 
             var employeeIdList = db.Employees.Select(e => e.Id).ToList();
-            var contractList = db.EmployeeContracts.Where(x=> employeeContractDtos.Select(c=> c.Id).Contains(x.Id)).ToDictionary(x=> x.Id);
+            var contractList = db.EmployeeContracts.Where(x => employeeContractDtos.Select(c => c.Id).Contains(x.Id)).ToDictionary(x => x.Id);
 
             foreach (var contract in employeeContractDtos)
             {
-                if(!employeeIdList.Contains(contract.EmployeeId))
+                if (!employeeIdList.Contains(contract.EmployeeId))
                 {
                     logger.LogWarning($"EmployeeId {contract.EmployeeId} not found for contracts, not inserting data. SeveraID is {contract.SeveraId}");
                     continue;
@@ -40,15 +40,38 @@ namespace Infrastructure.Persistance.Repositories
             await db.SaveChangesAsync();
         }
 
-        public async Task<IEnumerable<EmployeeDTO>> GetEmployees(bool includeDisabled = true)
+        public async Task<IEnumerable<EmployeeDTO>> GetEmployees(bool includeDisabled = false)
         {
             var employees = db.Employees.Include(x => x.EmployeeContracts).AsQueryable();
             var date = DateOnly.FromDateTime(DateTime.Now);
             if (!includeDisabled)
             {
-                employees = employees.Where(x=> x.EmployeeContracts.Any() && x.EmployeeContracts.Max(c => c.ToDate ?? DateOnly.MaxValue) >= date);
+                employees = employees.Where(x => !x.EmployeeContracts.Any() || x.EmployeeContracts.Max(c => c.ToDate ?? DateOnly.MaxValue) >= date);
             }
             return await employees.Select(x => x.ToDto()).ToListAsync();
+        }
+
+
+        public async Task<IEnumerable<EmployeeDTO>> GetEmployeeWithoutSeveraIds(bool includeDisabled = false)
+        {
+            var employees = db.Employees.Include(x => x.EmployeeContracts).Where(x => x.SeveraId == null).AsQueryable();
+            var date = DateOnly.FromDateTime(DateTime.Now);
+            if (!includeDisabled)
+            {
+                employees = employees.Where(x => !x.EmployeeContracts.Any() || x.EmployeeContracts.Max(c => c.ToDate ?? DateOnly.MaxValue) >= date);
+            }
+            return await employees.Select(x => x.ToDto()).ToListAsync();
+        }
+
+        public async Task UpdateSeveraIds(IEnumerable<SeveraEmployeeModel> employeeDTOs)
+        {
+            var employeeEmails = employeeDTOs.Select(x => x.Email);
+            var employees = db.Employees.Where(x => employeeEmails.Contains(x.Email));
+            foreach (var employee in employees) 
+            {
+                employee.SeveraId = employeeDTOs.First(x => x.Email == employee.Email).Id;
+            }
+            await db.SaveChangesAsync();
         }
     }
 }

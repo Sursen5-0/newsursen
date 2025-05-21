@@ -13,10 +13,10 @@ using Serilog.Events;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Hosting;
 
-var dopplerKey = Environment.GetEnvironmentVariable("doppler_key", EnvironmentVariableTarget.Machine);
+var token = Environment.GetEnvironmentVariable("doppler_key", EnvironmentVariableTarget.Machine);
 var environment = Environment.GetEnvironmentVariable("Environment", EnvironmentVariableTarget.Machine);
-ArgumentNullException.ThrowIfNull(dopplerKey, nameof(dopplerKey));
-ArgumentNullException.ThrowIfNull(environment, nameof(environment));
+ArgumentNullException.ThrowIfNull(token);
+ArgumentNullException.ThrowIfNull(environment);
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
@@ -28,7 +28,7 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Host.UseSerilog();
+builder.Services.AddSerilog();
 
 builder.Services.AddHangfire(config =>
 {
@@ -42,7 +42,7 @@ builder.Services.AddHttpClient();
 builder.Services.AddScoped<ISecretClient, DopplerClient>(provider =>
 {
     var httpClient = provider.GetRequiredService<HttpClient>();
-    return new DopplerClient(httpClient, dopplerKey, environment);
+    return new DopplerClient(httpClient, token, environment);
 });
 
 builder.Services.AddScoped<SeveraClient>(provider =>
@@ -90,3 +90,7 @@ using (var scope = app.Services.CreateScope())
 
 app.UseHangfireDashboard();
 app.Run();
+
+
+
+

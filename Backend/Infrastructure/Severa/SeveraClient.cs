@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace Infrastructure.Severa
 {
-    public class SeveraClient
+    public class SeveraClient : ISeveraClient
     {
         private readonly string _severaClientId;
         private readonly string _severaClientSecret;
@@ -63,13 +63,13 @@ namespace Infrastructure.Severa
         public async Task<EmployeeContractDTO> GetWorkContractByUserId(Guid userId)
         {
             var response = await GetEntityByID<SeveraWorkContract>($"users/{userId}/workcontracts/current");
-            if(!response.IsSuccess)
+            if (!response.IsSuccess)
             {
                 var message = $"Severa client was unable to get workcontract, returned HTTP {response.StatusCode}";
                 _logger.LogError(message);
                 throw new HttpRequestException(message);
             }
-            else if(response.Data == null)
+            else if (response.Data == null)
             {
                 var message = $"Severa was able to get workcontract, but returned empty response";
                 _logger.LogError(message);

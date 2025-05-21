@@ -15,6 +15,8 @@ namespace Infrastructure.Persistance.Repositories
     {
         public async Task InsertEmployeeContracts(IEnumerable<EmployeeContractDTO> employeeContractDtos)
         {
+            ArgumentNullException.ThrowIfNull(employeeContractDtos);
+
             var employeeIdList = db.Employees.Select(e => e.Id).ToList();
             var contractList = db.EmployeeContracts.Where(x=> employeeContractDtos.Select(c=> c.Id).Contains(x.Id)).ToDictionary(x=> x.Id);
 

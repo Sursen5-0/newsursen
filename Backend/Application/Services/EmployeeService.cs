@@ -11,21 +11,23 @@ using System.Threading.Tasks;
 
 namespace Application.Services
 {
-    public class EmployeeService(SeveraClient severaClient, IEmployeeRepository employeeRepository, ILogger<EmployeeService> logger) : IEmployeeService
+    public class EmployeeService(ISeveraClient severaClient, IEmployeeRepository employeeRepository, ILogger<EmployeeService> logger) : IEmployeeService
     {
         public async Task SynchronizeContracts()
         {
             //get employees 
             var employees = await employeeRepository.GetEmployees();
             var contracts = new List<EmployeeContractDTO>();
-
+            logger.LogInformation($"Synchronizing on {employees.Count()} employees contracts");
             foreach (var employee in employees)
             {
                 var result = await severaClient.GetWorkContractByUserId(employee.Id);
                 contracts.Add(result);
             }
+            logger.LogInformation($"Done pulling data from Severa, starting insert to db");
 
             await employeeRepository.InsertEmployeeContracts(contracts);
+            logger.LogInformation($"Done inserting data into db");
 
         }
     }

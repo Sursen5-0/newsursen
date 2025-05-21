@@ -24,7 +24,7 @@ Log.Logger = new LoggerConfiguration()
 
 var builder = WebApplication.CreateBuilder(args);
 
-// — Serilog integration
+// Serilog integration
 builder.Services.AddLogging(loggingBuilder =>
 {
     loggingBuilder
@@ -34,7 +34,7 @@ builder.Services.AddLogging(loggingBuilder =>
 });
 builder.Services.AddSerilog();
 
-// — Hangfire setup
+// Hangfire setup
 builder.Services.AddHangfire(config =>
 {
     config.UseInMemoryStorage();   // Use in-memory storage for demo purposes
@@ -42,7 +42,7 @@ builder.Services.AddHangfire(config =>
 });
 builder.Services.AddHangfireServer();
 
-// — HTTP client and secret store
+// HTTP client and secret store
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<ISecretClient, DopplerClient>(provider =>
 {
@@ -50,7 +50,7 @@ builder.Services.AddScoped<ISecretClient, DopplerClient>(provider =>
     return new DopplerClient(httpClient, token, environment);
 });
 
-// — SeveraClient with retry handler
+// SeveraClient with retry handler
 builder.Services.AddScoped<SeveraClient>(provider =>
 {
     var secretClient = provider.GetRequiredService<ISecretClient>();
@@ -59,7 +59,7 @@ builder.Services.AddScoped<SeveraClient>(provider =>
     return new SeveraClient(secretClient, httpClient);
 });
 
-// — Entra retry handler and client
+// Entra retry handler and client
 builder.Services.AddTransient<EntraRetryHandler>();
 builder.Services.AddScoped<EntraClient>(provider =>
 {
@@ -68,14 +68,14 @@ builder.Services.AddScoped<EntraClient>(provider =>
     return new EntraClient(secretClient, retryLogger);
 });
 
-// — Jobs
+// Jobs
 builder.Services.AddScoped<TestJob>();
 builder.Services.AddScoped<TestEntraJob>();
 builder.Services.AddScoped<FetchGraphUsersJob>();
 
 var app = builder.Build();
 
-// — Register recurring jobs
+// Register recurring jobs
 using (var scope = app.Services.CreateScope())
 {
     var jobs = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
@@ -87,19 +87,6 @@ using (var scope = app.Services.CreateScope())
         () => testJob.WriteTest(),
         Cron.Minutely);
 
-    // TestEntraJob
-    var entraJob = scope.ServiceProvider.GetRequiredService<TestEntraJob>();
-    jobs.AddOrUpdate(
-        "entra-token-job",
-        () => entraJob.WriteTestToken(),
-        Cron.Minutely);
-
-    // FetchGraphUsersJob
-    var graphJob = scope.ServiceProvider.GetRequiredService<FetchGraphUsersJob>();
-    jobs.AddOrUpdate(
-        "graph-users-job",
-        () => graphJob.WriteGraphUsers(),
-        Cron.Minutely);
 }
 
 app.UseHangfireDashboard();

@@ -1,11 +1,12 @@
-﻿using Application.Secrets;
-using Infrastructure.Entra.Models;
-using Microsoft.Extensions.Logging;
+﻿// EntraClient.cs
 using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using Application.Secrets;
+using Infrastructure.Entra.Models;
+using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Entra
 {
@@ -14,21 +15,6 @@ namespace Infrastructure.Entra
         private readonly ISecretClient _secretClient;
         private readonly ILogger<EntraRetryHandler> _retryLogger;
         private string? _token;
-
-        private const string TokenEndpointTemplate =
-            "https://login.microsoftonline.com/{0}/oauth2/v2.0/token";
-        private const string Scope = "https://graph.microsoft.com/.default";
-        private const string ClientIdSecretName = "ENTRA_ID";
-        private const string ClientSecretName = "ENTRA_SECRET";
-        private const string TenantIdSecretName = "ENTRA_TENANT";
-        private const string UsersEndpoint =
-            "https://graph.microsoft.com/v1.0/users" +
-            "?$select=id,accountEnabled,ageGroup,businessPhones,city,companyName,country," +
-            "createdDateTime,creationType,department,displayName,employeeHireDate,employeeId," +
-            "employeeLeaveDateTime,employeeType,givenName,jobTitle,mail,mobilePhone,postalCode," +
-            "surname,userPrincipalName,userType" +
-            "&$filter=accountEnabled eq true and endswith(mail, '@twoday.com') and jobTitle ne null" +
-            "&$count=true";
 
         public EntraClient(
             ISecretClient secretClient,
@@ -45,22 +31,19 @@ namespace Infrastructure.Entra
 
             try
             {
-                var tenantId = await _secretClient.GetSecretAsync(TenantIdSecretName);
-                var clientId = await _secretClient.GetSecretAsync(ClientIdSecretName);
-                var clientSecret = await _secretClient.GetSecretAsync(ClientSecretName);
+                // 1) retrieve vault secrets
+                var tenantId = await _secretClient.GetSecretAsync(URLExtensions.TenantIdSecretName);
+                var clientId = await _secretClient.GetSecretAsync(URLExtensions.ClientIdSecretName);
+                var clientSecret = await _secretClient.GetSecretAsync(URLExtensions.ClientSecretName);
 
-                var payload = new Dictionary<string, string>
-                {
-                    ["client_id"] = clientId,
-                    ["client_secret"] = clientSecret,
-                    ["scope"] = Scope,
-                    ["grant_type"] = "client_credentials"
-                };
+                // 2) build payload dict & endpoint URL
+                Dictionary<string, string> payload =
+                    URLExtensions.CreateTokenRequestPayload(clientId, clientSecret);
+                var tokenUrl = URLExtensions.GetTokenEndpoint(tenantId);
 
+                // 3) send request
                 var handler = new EntraRetryHandler(_retryLogger);
                 using var http = new HttpClient(handler);
-                var tokenUrl = string.Format(TokenEndpointTemplate, tenantId);
-
                 using var req = new HttpRequestMessage(HttpMethod.Post, tokenUrl)
                 {
                     Content = new FormUrlEncodedContent(payload)
@@ -78,7 +61,7 @@ namespace Infrastructure.Entra
 
                 var json = await res.Content.ReadAsStringAsync();
                 var tokenResponse = JsonSerializer.Deserialize<TokenResponse>(json);
-                if (tokenResponse == null)
+                if (tokenResponse is null)
                 {
                     _retryLogger.LogError("Failed to deserialize token JSON: {Json}", json);
                     return null;
@@ -110,13 +93,17 @@ namespace Infrastructure.Entra
                 var accessToken = await GetTokenAsync();
                 if (string.IsNullOrEmpty(accessToken))
                 {
-                    _retryLogger.LogWarning("No access token available, aborting GetUsersJsonAsync");
+                    _retryLogger.LogError(
+                        "No access token available, aborting GetUsersJsonAsync");
                     return null;
                 }
 
                 var handler = new EntraRetryHandler(_retryLogger);
                 using var http = new HttpClient(handler);
-                using var req = new HttpRequestMessage(HttpMethod.Get, UsersEndpoint);
+
+                // build the /users URL dynamically
+                var usersUrl = URLExtensions.BuildUsersEndpoint();
+                using var req = new HttpRequestMessage(HttpMethod.Get, usersUrl);
 
                 req.Headers.Authorization =
                     new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);

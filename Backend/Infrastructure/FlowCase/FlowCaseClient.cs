@@ -14,18 +14,25 @@ namespace Infrastructure.FlowCase
 {
     public class FlowCaseClient
     {
-        private readonly string _flowCaseClientId;
-        private readonly string _flowCaseClientSecret;
-
-        private static readonly string FLOWCASE_ROOT_URL = "https://twoday.flowcase.com/api/v3/cvs"; //<---- grund URL Flowcase API for CV's
-        private static readonly string FLOWCASE_KEY = "FLOWCASE_KEY"; //<---- Key for Flowcase API
-
+        private readonly ISecretClient _secretClient;
         private readonly HttpClient _client;
-        private string? _token = null;
+        private const string FLOWCASE_KEY = "FLOWCASE_KEY";
 
         public FlowCaseClient(ISecretClient secretClient, HttpClient httpClient)
         {
-            _flowCasekey = secretClient.GetSecretAsync(FLOWCASE_KEY).Result;
+            _secretClient = secretClient;
             _client = httpClient;
         }
+
+        public Task<string> GetApiKey()
+        {
+            // Always fetch the latest key asynchronously
+            return _secretClient.GetSecretAsync(FLOWCASE_KEY);
+        }
+
+        public async Task<string> GetCV()
+        {
+            return "";
+        }
     }
+}

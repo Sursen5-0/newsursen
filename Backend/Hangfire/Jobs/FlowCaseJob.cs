@@ -11,9 +11,9 @@ namespace HangFire.Jobs
         private readonly FlowCaseClient _flowCaseClient;
         private readonly ILogger<FlowCaseJob> _logger;
 
-        public FlowCaseJob(SeveraClient severaClient, ILogger<FlowCaseJob> logger)
+        public FlowCaseJob(FlowCaseClient flowCaseClient, ILogger<FlowCaseJob> logger)
         {
-            _severaClient = severaClient;
+            _flowCaseClient = flowCaseClient;
             _logger = logger;
         }
 

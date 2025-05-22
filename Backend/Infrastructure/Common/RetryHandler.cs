@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Infrastructure.Severa
+namespace Infrastructure.Common
 {
     public class RetryHandler(HttpMessageHandler _innerHandler, ILogger<RetryHandler> _logger) : DelegatingHandler(_innerHandler)
     {
@@ -27,7 +27,7 @@ namespace Infrastructure.Severa
                 }
                 _logger.LogWarning($"Request failed trying again ({attempt + 1} of {MAX_RETRIES})[{response.StatusCode}]");
                 var jitter = Random.Shared.Next(100, 300);
-                await Task.Delay((attempt * MESSAGE_DELAY_MS) + jitter, cancellationToken);
+                await Task.Delay(attempt * MESSAGE_DELAY_MS + jitter, cancellationToken);
             }
             _logger.LogError($"Request failed within maximum attempts of {MAX_RETRIES}");
             return response;

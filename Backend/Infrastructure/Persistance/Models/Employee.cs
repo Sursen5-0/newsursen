@@ -19,19 +19,15 @@ public partial class Employee : BaseEntity
 
     public Guid BusinessUnitId { get; set; }
 
-    public Guid? ManagerId { get; set; }
-
     public string? WorkPhoneNumber { get; set; }
 
     public string? PersonalPhoneNumber { get; set; }
 
-    public Guid SeveraId { get; set; }
-
     public string HubSpotId { get; set; } = null!;
+    public Guid SeveraId { get; set; }
+    public Guid? ManagerId { get; set; }
 
-    public string TimId { get; set; } = null!;
-
-    public string EntraId { get; set; } = null!;
+    public Guid EntraId { get; set; }
 
     public string FlowCaseId { get; set; } = null!;
 

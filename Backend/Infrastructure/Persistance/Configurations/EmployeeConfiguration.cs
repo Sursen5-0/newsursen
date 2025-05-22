@@ -22,6 +22,7 @@ namespace Infrastructure.Persistance.Configurations
             builder.Property(e => e.WorkPhoneNumber).HasMaxLength(20);
             builder.Property(e => e.PersonalPhoneNumber).HasMaxLength(20);
             builder.Property(e => e.FirstName).HasMaxLength(255);
+            builder.Property(e => e.Email).HasMaxLength(255);
             builder.Property(e => e.LastName).HasMaxLength(255);
             builder.Property(e => e.FlowCaseId).HasMaxLength(24).IsFixedLength().IsUnicode(false);
             builder.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");

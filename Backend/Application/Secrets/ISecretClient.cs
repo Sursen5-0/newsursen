@@ -1,4 +1,4 @@
-﻿namespace Domain.Interfaces.ExternalClients
+﻿namespace Application.Secrets
 {
     public interface ISecretClient
     {

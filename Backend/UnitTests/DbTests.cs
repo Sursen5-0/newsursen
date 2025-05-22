@@ -46,7 +46,6 @@ namespace UnitTests
                 WorkPhoneNumber = "",
                 SeveraId = Guid.NewGuid(),
                 PersonalPhoneNumber = "",
-                Email = ""
             };
             // Act 
             _context.Employees.Add(employee);

@@ -14,9 +14,11 @@ namespace UnitTests
     public class RetryHandlerTests
     {
         [Fact]
-        public async Task SendAsync_Retries3Times_OnRetriableStatusCode()
+        public async Task SendAsync_Retries_OnRetriableStatusCode()
         {
             // Arrange
+            var retryCount = 0;
+
             var mockHandler = new Mock<HttpMessageHandler>();
             mockHandler.Protected()
                 .Setup<Task<HttpResponseMessage>>(
@@ -36,7 +38,7 @@ namespace UnitTests
             // Assert
             mockHandler.Protected().Verify(
                 "SendAsync",
-                Times.Exactly(3),
+                Times.Exactly(4),
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             );

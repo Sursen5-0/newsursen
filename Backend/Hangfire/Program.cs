@@ -1,18 +1,13 @@
-using Application.Services;
-using Domain.Interfaces.ExternalClients;
-using Domain.Interfaces.Repositories;
-using Domain.Interfaces.Services;
+using Application.Secrets;
 using Hangfire;
 using Hangfire.Jobs;
 using Infrastructure.Persistance;
-using Infrastructure.Persistance.Repositories;
 using Infrastructure.Secrets;
 using Infrastructure.Severa;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Serilog.Events;
-using System.Net.Http.Headers;
 
 var token = Environment.GetEnvironmentVariable("doppler_key", EnvironmentVariableTarget.Machine);
 var environment = Environment.GetEnvironmentVariable("Environment", EnvironmentVariableTarget.Machine);
@@ -29,7 +24,6 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day)
     .CreateLogger();
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddSerilog();
 builder.Services.AddHangfire(config =>
 {
     config.UseInMemoryStorage(); // Use in-memory storage for demo purposes
@@ -38,9 +32,6 @@ builder.Services.AddHangfire(config =>
 builder.Services.AddHangfireServer();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<TestJob>();
-builder.Services.AddScoped<IEmployeeService,EmployeeService>(); 
-builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>(); 
-builder.Services.AddScoped<SeveraJobs>();
 builder.Services.AddDbContext<SursenContext>((services, options) =>
 {
     var secretClient = services.GetRequiredService<ISecretClient>();
@@ -49,45 +40,37 @@ builder.Services.AddDbContext<SursenContext>((services, options) =>
     b => b.MigrationsAssembly("Infrastructure"));
 });
 
-
 builder.Services.AddScoped<ISecretClient, DopplerClient>(provider =>
 {
-    var clientFactory = provider.GetRequiredService<IHttpClientFactory>();
-    var httpClient = clientFactory.CreateClient("doppler");
-    httpClient.BaseAddress = new Uri("https://api.doppler.com/v3/");
-    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-    return new DopplerClient(httpClient, token, environment);
+    var httpclient = provider.GetRequiredService<HttpClient>();
+
+    return new DopplerClient(httpclient, token, environment);
 });
-builder.Services.AddHttpClient<ISeveraClient,SeveraClient>()
-    .ConfigurePrimaryHttpMessageHandler(provider =>
-    {
-        var logger = provider.GetRequiredService<ILogger<RetryHandler>>();
-        return new RetryHandler(new HttpClientHandler(), logger);
-    });
+builder.Services.AddScoped<SeveraClient>(provider =>
+{
+    var secretClient = provider.GetRequiredService<ISecretClient>();
+    var logger = provider.GetRequiredService<ILogger<RetryHandler>>();
+    var httpclient = new HttpClient(new RetryHandler(new HttpClientHandler(), logger));
+    return new SeveraClient(secretClient, httpclient);
+});
 builder.Services.AddLogging(loggingbuilder =>
 {
     loggingbuilder.ClearProviders()
-    .SetMinimumLevel(LogLevel.Trace)
+    .SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace)
     .AddConsole();
 });
+builder.Services.AddSerilog();
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
     var jobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
-
+    var service = scope.ServiceProvider.GetRequiredService<TestJob>();
     jobManager.AddOrUpdate(
-        "TestJob",
-        () => scope.ServiceProvider.GetRequiredService<TestJob>().WriteTest(),
+        "my-recurring-job",
+        () => service.WriteTest(), 
         Cron.Minutely);
-    jobManager.AddOrUpdate(
-        "SynchronizeEmployees",
-        () => scope.ServiceProvider.GetRequiredService<SeveraJobs>().SynchronizeEmployees(), "0 0 31 2 *");
-    jobManager.AddOrUpdate(
-        "SynchronizeContracts",
-        () => scope.ServiceProvider.GetRequiredService<SeveraJobs>().SynchronizeContracts(), "0 0 31 2 *");
-
 }
 
-app.UseHangfireDashboard();
+app.UseHangfireDashboard(); 
 app.Run();

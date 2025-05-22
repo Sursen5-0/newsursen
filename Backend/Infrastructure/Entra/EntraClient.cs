@@ -1,19 +1,18 @@
-﻿using System;
+﻿using Domain.Interfaces.ExternalClients;
+using Infrastructure.Entra.Models;
+using Microsoft.Extensions.Logging;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Domain.Interfaces.ExternalClients;
-using Infrastructure.Entra.Models;
-using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Entra
 {
-    public class EntraClient(
+    public record EntraClient(
         ISecretClient SecretClient,
         HttpClient HttpClient,
         ILogger<EntraRetryHandler> _logger
-    )
+    ) : IEntraClient
     {
         private string? _token;
 
@@ -31,18 +30,16 @@ namespace Infrastructure.Entra
                 var payload = URLExtensions.CreateTokenRequestPayload(clientId, clientSecret);
                 var tokenUrl = URLExtensions.GetTokenEndpoint(tenantId);
 
-                var req = new HttpRequestMessage(HttpMethod.Post, tokenUrl)
+                using var req = new HttpRequestMessage(HttpMethod.Post, tokenUrl)
                 {
                     Content = new FormUrlEncodedContent(payload)
                 };
-                var res = await HttpClient.SendAsync(req);
+                using var res = await HttpClient.SendAsync(req);
 
                 if (!res.IsSuccessStatusCode)
                 {
                     var err = await res.Content.ReadAsStringAsync();
-                    _logger.LogError(
-                        "Token request failed with {StatusCode}: {Error}",
-                        res.StatusCode, err);
+                    _logger.LogError("Token request failed with {StatusCode}: {Error}", res.StatusCode, err);
                     return null;
                 }
 
@@ -80,25 +77,20 @@ namespace Infrastructure.Entra
                 var accessToken = await GetTokenAsync();
                 if (string.IsNullOrEmpty(accessToken))
                 {
-                    _logger.LogError(
-                        "No access token available, aborting GetUsersJsonAsync");
+                    _logger.LogError("No access token available, aborting GetUsersJsonAsync");
                     return null;
                 }
 
                 var usersUrl = URLExtensions.BuildUsersEndpoint();
-                var req = new HttpRequestMessage(HttpMethod.Get, usersUrl);
-
-                req.Headers.Authorization =
-                    new AuthenticationHeaderValue("Bearer", accessToken);
+                using var req = new HttpRequestMessage(HttpMethod.Get, usersUrl);
+                req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
                 req.Headers.Add("ConsistencyLevel", "eventual");
 
-                var res = await HttpClient.SendAsync(req);
+                using var res = await HttpClient.SendAsync(req);
                 if (!res.IsSuccessStatusCode)
                 {
                     var err = await res.Content.ReadAsStringAsync();
-                    _logger.LogError(
-                        "Graph /users request failed with {StatusCode}: {Error}",
-                        res.StatusCode, err);
+                    _logger.LogError("Graph /users request failed with {StatusCode}: {Error}", res.StatusCode, err);
                     return null;
                 }
 

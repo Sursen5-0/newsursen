@@ -1,23 +1,29 @@
-﻿// TestJob.cs
-using Infrastructure.Entra;
-using Microsoft.Extensions.Logging;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Threading.Tasks;
+using Domain.Interfaces.ExternalClients;
+using Microsoft.Extensions.Logging;
 
 namespace Hangfire.Jobs
 {
-    public class TestJob(EntraClient severaClient, ILogger<TestJob> _logger)
+    public class TestJob
     {
+        private readonly IEntraClient _entraClient;
+        private readonly ILogger<TestJob> _logger;
+
+        public TestJob(IEntraClient entraClient, ILogger<TestJob> logger)
+        {
+            _entraClient = entraClient;
+            _logger = logger;
+        }
+
         public async Task WriteTest()
         {
             _logger.LogInformation("making call");
 
-            // Call the client to get the users JSON
-            var json = await severaClient.GetUsersJsonAsync();
+            var json = await _entraClient.GetUsersJsonAsync();
 
-            _logger.LogInformation($"got users JSON: {json}");
+            _logger.LogInformation("got users JSON: {json}", json);
 
-            // Debug output
             Debug.WriteLine("Users JSON:");
             Debug.WriteLine(json);
         }

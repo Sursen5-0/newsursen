@@ -16,18 +16,21 @@ namespace Infrastructure.Severa
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            for (int attempt = 0; attempt < MAX_RETRIES; attempt++)
+            HttpResponseMessage response = null!;
+
+            for (int attempt = 1; attempt <= MAX_RETRIES; attempt++)
             {
-                var response = await base.SendAsync(request, cancellationToken);
+                response = await base.SendAsync(request, cancellationToken);
                 if (response.IsSuccessStatusCode || NonRetriableStatusCodes.Contains((int)response.StatusCode))
                 {
                     return response;
                 }
                 _logger.LogWarning($"Request failed trying again ({attempt + 1} of {MAX_RETRIES})[{response.StatusCode}]");
-                await Task.Delay(MESSAGE_DELAY_MS, cancellationToken);
+                var jitter = Random.Shared.Next(100, 300);
+                await Task.Delay((attempt * MESSAGE_DELAY_MS) + jitter, cancellationToken);
             }
             _logger.LogError($"Request failed within maximum attempts of {MAX_RETRIES}");
-            return await base.SendAsync(request, cancellationToken);
+            return response;
         }
     }
 }

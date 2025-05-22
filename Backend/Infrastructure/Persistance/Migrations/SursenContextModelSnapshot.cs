@@ -160,10 +160,13 @@ namespace Infrastructure.Migrations
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("(getdate())");
 
-                    b.Property<Guid>("EntraId")
+                    b.Property<string>("Email")
+                        .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("uniqueidentifier")
-                        .IsFixedLength();
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<Guid>("EntraId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
@@ -171,7 +174,6 @@ namespace Infrastructure.Migrations
                         .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("FlowCaseId")
-                        .IsRequired()
                         .HasMaxLength(24)
                         .IsUnicode(false)
                         .HasColumnType("char(24)")
@@ -181,7 +183,6 @@ namespace Infrastructure.Migrations
                         .HasColumnType("date");
 
                     b.Property<string>("HubSpotId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("LastName")
@@ -199,7 +200,7 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<Guid>("SeveraId")
+                    b.Property<Guid?>("SeveraId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -222,9 +223,6 @@ namespace Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<decimal>("BillableHours")
-                        .HasColumnType("decimal(5, 2)");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()

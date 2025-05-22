@@ -1,7 +1,11 @@
-using Application.Secrets;
+using Application.Services;
+using Domain.Interfaces.ExternalClients;
+using Domain.Interfaces.Repositories;
+using Domain.Interfaces.Services;
 using Hangfire;
 using Hangfire.Jobs;
 using Infrastructure.Persistance;
+using Infrastructure.Persistance.Repositories;
 using Infrastructure.Secrets;
 using Infrastructure.Severa;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +13,7 @@ using Infrastructure.Entra;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Serilog.Events;
+using System.Net.Http.Headers;
 
 var token = Environment.GetEnvironmentVariable("doppler_key", EnvironmentVariableTarget.Machine);
 var environment = Environment.GetEnvironmentVariable("Environment", EnvironmentVariableTarget.Machine);
@@ -47,6 +52,9 @@ builder.Services.AddHangfireServer();
 // HTTP client and secret store
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<TestJob>();
+builder.Services.AddScoped<IEmployeeService,EmployeeService>(); 
+builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>(); 
+builder.Services.AddScoped<SeveraJobs>();
 builder.Services.AddDbContext<SursenContext>((services, options) =>
 {
     var secretClient = services.GetRequiredService<ISecretClient>();
@@ -55,29 +63,29 @@ builder.Services.AddDbContext<SursenContext>((services, options) =>
     b => b.MigrationsAssembly("Infrastructure"));
 });
 
+
 builder.Services.AddScoped<ISecretClient, DopplerClient>(provider =>
 {
-    var httpClient = provider.GetRequiredService<HttpClient>();
+    var clientFactory = provider.GetRequiredService<IHttpClientFactory>();
+    var httpClient = clientFactory.CreateClient("doppler");
+    httpClient.BaseAddress = new Uri("https://api.doppler.com/v3/");
+    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
     return new DopplerClient(httpClient, token, environment);
 });
-
-// SeveraClient with retry handler
-builder.Services.AddScoped<SeveraClient>(provider =>
-{
-    var secretClient = provider.GetRequiredService<ISecretClient>();
-    var logger = provider.GetRequiredService<ILogger<RetryHandler>>();
-    var httpClient = new HttpClient(new RetryHandler(new HttpClientHandler(), logger));
-    return new SeveraClient(secretClient, httpClient);
-});
-
-// Entra retry handler and client
+builder.Services.AddHttpClient<ISeveraClient,SeveraClient>()
+    .ConfigurePrimaryHttpMessageHandler(provider =>
+    {
+        var logger = provider.GetRequiredService<ILogger<RetryHandler>>();
+        return new RetryHandler(new HttpClientHandler(), logger);
+    });
 builder.Services.AddTransient<EntraRetryHandler>();
-builder.Services.AddScoped<EntraClient>(provider =>
-{
-    var secretClient = provider.GetRequiredService<ISecretClient>();
-    var retryLogger = provider.GetRequiredService<ILogger<EntraRetryHandler>>();
-    return new EntraClient(secretClient, retryLogger);
-});
+
+builder.Services.AddHttpClient<EntraClient>()
+    .ConfigurePrimaryHttpMessageHandler(provider =>
+    {
+        var logger = provider.GetRequiredService<ILogger<EntraRetryHandler>>();
+        return new EntraRetryHandler(new HttpClientHandler(), logger);
+    });
 
 // Jobs
 builder.Services.AddScoped<TestJob>();
@@ -87,14 +95,20 @@ var app = builder.Build();
 // Register recurring jobs
 using (var scope = app.Services.CreateScope())
 {
-    var jobs = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
+    var jobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
 
     // TestJob
     var testJob = scope.ServiceProvider.GetRequiredService<TestJob>();
-    jobs.AddOrUpdate(
+    jobManager.AddOrUpdate(
         "my-recurring-job",
         () => testJob.WriteTest(),
         Cron.Minutely);
+    jobManager.AddOrUpdate(
+        "SynchronizeEmployees",
+        () => scope.ServiceProvider.GetRequiredService<SeveraJobs>().SynchronizeEmployees(), "0 0 31 2 *");
+    jobManager.AddOrUpdate(
+        "SynchronizeContracts",
+        () => scope.ServiceProvider.GetRequiredService<SeveraJobs>().SynchronizeContracts(), "0 0 31 2 *");
 
 }
 

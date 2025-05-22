@@ -19,7 +19,6 @@ namespace Infrastructure.Persistance.Configurations
             builder.HasKey(e => e.Id);
 
             builder.Property(e => e.Id).ValueGeneratedNever();
-            builder.Property(e => e.BillableHours).HasColumnType("decimal(5, 2)");
             builder.Property(e => e.ExpectedHours).HasColumnType("decimal(5, 2)");
             builder.Property(e => e.Title)
                 .HasMaxLength(255);

@@ -7,19 +7,12 @@ using System.Threading.Tasks;
 
 namespace Infrastructure.Entra
 {
-    public class EntraRetryHandler : DelegatingHandler
+    public class EntraRetryHandler(HttpMessageHandler _innerHandler, ILogger<EntraRetryHandler> _logger) : DelegatingHandler(_innerHandler)
     {
         private const int MAX_RETRIES = 3;
         private const int MESSAGE_DELAY_MS = 1000;
         private static readonly int[] NonRetriableStatusCodes = { 400, 401, 403, 404 };
 
-        private readonly ILogger<EntraRetryHandler> _logger;
-
-        public EntraRetryHandler(ILogger<EntraRetryHandler> logger)
-            : base(new HttpClientHandler())
-        {
-            _logger = logger;
-        }
 
         protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,

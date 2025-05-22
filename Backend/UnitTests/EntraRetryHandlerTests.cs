@@ -29,10 +29,7 @@ namespace UnitTests
                 .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK));
 
             var loggerMock = new Mock<ILogger<EntraRetryHandler>>();
-            var retryHandler = new EntraRetryHandler(loggerMock.Object)
-            {
-                InnerHandler = mockHandler.Object
-            };
+            var retryHandler = new EntraRetryHandler(mockHandler.Object, loggerMock.Object);
             var client = new HttpClient(retryHandler);
 
             var response = await client.GetAsync("https://example.com");
@@ -60,10 +57,7 @@ namespace UnitTests
                 .ReturnsAsync(new HttpResponseMessage(code));
 
             var loggerMock = new Mock<ILogger<EntraRetryHandler>>();
-            var retryHandler = new EntraRetryHandler(loggerMock.Object)
-            {
-                InnerHandler = mockHandler.Object
-            };
+            var retryHandler = new EntraRetryHandler(mockHandler.Object, loggerMock.Object);
             var client = new HttpClient(retryHandler);
 
             var response = await client.GetAsync("https://example.com");
@@ -88,10 +82,7 @@ namespace UnitTests
                 .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK));
 
             var loggerMock = new Mock<ILogger<EntraRetryHandler>>();
-            var retryHandler = new EntraRetryHandler(loggerMock.Object)
-            {
-                InnerHandler = mockHandler.Object
-            };
+            var retryHandler = new EntraRetryHandler(mockHandler.Object, loggerMock.Object);
             var client = new HttpClient(retryHandler);
 
             var response = await client.GetAsync("https://example.com");

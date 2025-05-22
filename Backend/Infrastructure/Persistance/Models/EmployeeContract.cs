@@ -15,8 +15,6 @@ public partial class EmployeeContract : BaseEntity
 
     public decimal ExpectedHours { get; set; }
 
-    public decimal BillableHours { get; set; }
-
     public Guid SeveraId { get; set; }
 
     public Guid EmployeeId { get; set; }

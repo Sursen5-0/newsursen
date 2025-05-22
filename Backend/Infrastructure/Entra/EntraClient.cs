@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Infrastructure.Entra
 {
-    public record EntraClient(
+    public class EntraClient(
         ISecretClient SecretClient,
         HttpClient HttpClient,
         ILogger<EntraRetryHandler> _logger
@@ -30,11 +30,11 @@ namespace Infrastructure.Entra
                 var payload = URLExtensions.CreateTokenRequestPayload(clientId, clientSecret);
                 var tokenUrl = URLExtensions.GetTokenEndpoint(tenantId);
 
-                using var req = new HttpRequestMessage(HttpMethod.Post, tokenUrl)
+                var req = new HttpRequestMessage(HttpMethod.Post, tokenUrl)
                 {
                     Content = new FormUrlEncodedContent(payload)
                 };
-                using var res = await HttpClient.SendAsync(req);
+                var res = await HttpClient.SendAsync(req);
 
                 if (!res.IsSuccessStatusCode)
                 {
@@ -82,11 +82,11 @@ namespace Infrastructure.Entra
                 }
 
                 var usersUrl = URLExtensions.BuildUsersEndpoint();
-                using var req = new HttpRequestMessage(HttpMethod.Get, usersUrl);
+                var req = new HttpRequestMessage(HttpMethod.Get, usersUrl);
                 req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
                 req.Headers.Add("ConsistencyLevel", "eventual");
 
-                using var res = await HttpClient.SendAsync(req);
+                var res = await HttpClient.SendAsync(req);
                 if (!res.IsSuccessStatusCode)
                 {
                     var err = await res.Content.ReadAsStringAsync();

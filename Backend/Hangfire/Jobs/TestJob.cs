@@ -3,29 +3,19 @@ using System.Threading.Tasks;
 using Domain.Interfaces.ExternalClients;
 using Microsoft.Extensions.Logging;
 
-namespace Hangfire.Jobs
+namespace Hangfire.Jobs;
+
+public class TestJob(IEntraClient entraClient, ILogger<TestJob> _logger)
 {
-    public class TestJob
+    public async Task WriteTest()
     {
-        private readonly IEntraClient _entraClient;
-        private readonly ILogger<TestJob> _logger;
+        _logger.LogInformation("making call");
 
-        public TestJob(IEntraClient entraClient, ILogger<TestJob> logger)
-        {
-            _entraClient = entraClient;
-            _logger = logger;
-        }
+        var json = await entraClient.GetUsersJsonAsync();
 
-        public async Task WriteTest()
-        {
-            _logger.LogInformation("making call");
+        _logger.LogInformation($"got users JSON: {json}");
 
-            var json = await _entraClient.GetUsersJsonAsync();
-
-            _logger.LogInformation("got users JSON: {json}", json);
-
-            Debug.WriteLine("Users JSON:");
-            Debug.WriteLine(json);
-        }
+        Debug.WriteLine("Users JSON:");
+        Debug.WriteLine(json);
     }
 }

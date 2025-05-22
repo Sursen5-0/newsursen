@@ -1,4 +1,5 @@
 ﻿using Domain.Interfaces.ExternalClients;
+using Infrastructure.Common;
 using Infrastructure.Entra.Models;
 using Microsoft.Extensions.Logging;
 using System.Net.Http;
@@ -11,7 +12,7 @@ namespace Infrastructure.Entra
     public class EntraClient(
         ISecretClient SecretClient,
         HttpClient HttpClient,
-        ILogger<EntraRetryHandler> _logger
+        ILogger<RetryHandler> _logger
     ) : IEntraClient
     {
         private string? _token;

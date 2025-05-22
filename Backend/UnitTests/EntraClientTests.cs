@@ -1,4 +1,5 @@
 ﻿using Domain.Interfaces.ExternalClients;
+using Infrastructure.Common;
 using Infrastructure.Entra;
 using Infrastructure.Severa.Models;
 using Microsoft.Extensions.Logging;
@@ -44,7 +45,7 @@ namespace UnitTests
                 .ReturnsAsync(responseMessage);
 
 
-            var loggerMock = new Mock<ILogger<EntraRetryHandler>>();
+            var loggerMock = new Mock<ILogger<RetryHandler>>();
             var client = new EntraClient(
                 secretMock.Object,
                 new HttpClient(mockHandler.Object),
@@ -93,7 +94,7 @@ namespace UnitTests
                 .ReturnsAsync(responseMessage);
 
 
-            var loggerMock = new Mock<ILogger<EntraRetryHandler>>();
+            var loggerMock = new Mock<ILogger<RetryHandler>>();
             var client = new EntraClient(
                 secretMock.Object,
                 new HttpClient(mockHandler.Object),

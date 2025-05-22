@@ -14,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Serilog.Events;
 using System.Net.Http.Headers;
+using Infrastructure.Common;
 
 var token = Environment.GetEnvironmentVariable("doppler_key", EnvironmentVariableTarget.Machine);
 var environment = Environment.GetEnvironmentVariable("Environment", EnvironmentVariableTarget.Machine);
@@ -80,8 +81,8 @@ builder.Services.AddHttpClient<ISeveraClient, SeveraClient>()
 builder.Services.AddHttpClient<IEntraClient, EntraClient>()
     .ConfigurePrimaryHttpMessageHandler(provider =>
     {
-        var logger = provider.GetRequiredService<ILogger<EntraRetryHandler>>();
-        return new EntraRetryHandler(new HttpClientHandler(), logger);
+        var logger = provider.GetRequiredService<ILogger<RetryHandler>>();
+        return new RetryHandler(new HttpClientHandler(), logger);
     });
 
 var app = builder.Build();

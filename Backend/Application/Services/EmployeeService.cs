@@ -10,45 +10,45 @@ using System.Threading.Tasks;
 
 namespace Application.Services
 {
-    public class EmployeeService(ISeveraClient severaClient, IEmployeeRepository employeeRepository, ILogger<EmployeeService> logger) : IEmployeeService
+    public class EmployeeService(ISeveraClient _severaClient, IEmployeeRepository _employeeRepository, ILogger<EmployeeService> _logger) : IEmployeeService
     {
         public async Task SynchronizeContracts()
         {
-            logger.LogInformation($"Start synchronizing of contracts");
+            _logger.LogInformation($"Start synchronizing of contracts");
 
-            var employees = await employeeRepository.GetEmployees();
+            var employees = await _employeeRepository.GetEmployees();
             employees = employees.Where(x => x.SeveraId != null);
             var contracts = new List<EmployeeContractDTO>();
-            logger.LogInformation($"Synchronizing on {employees.Count()} employees contracts");
+            _logger.LogInformation($"Synchronizing on {employees.Count()} employees contracts");
 
             foreach (var employee in employees)
             {
-                var result = await severaClient.GetWorkContractByUserId(employee.SeveraId!.Value);
+                var result = await _severaClient.GetWorkContractByUserId(employee.SeveraId!.Value);
                 result.EmployeeId = employee.Id;
                 contracts.Add(result);
             }
 
-            logger.LogInformation($"Done pulling data from Severa, starting insert to db");
-            await employeeRepository.InsertEmployeeContracts(contracts);
+            _logger.LogInformation($"Done pulling data from Severa, starting insert to db");
+            await _employeeRepository.InsertEmployeeContracts(contracts);
 
-            logger.LogInformation($"Done synchronizing contracts");
+            _logger.LogInformation($"Done synchronizing contracts");
         }
 
         public async Task SynchronizeUnmappedSeveraIds()
         {
-            logger.LogInformation($"Start synchronizing of severaIds");
-            var dbEmployees = await employeeRepository.GetEmployeeWithoutSeveraIds();
+            _logger.LogInformation($"Start synchronizing of severaIds");
+            var dbEmployees = await _employeeRepository.GetEmployeeWithoutSeveraIds();
             var severaEmployees = new List<SeveraEmployeeModel>();
             foreach (var employee in dbEmployees)
             {
-                var data = await severaClient.GetUserByEmail(employee.Email);
+                var data = await _severaClient.GetUserByEmail(employee.Email);
                 if (data == null)
                 {
                     continue;
                 }
                 severaEmployees.Add(data);
             }
-            await employeeRepository.UpdateSeveraIds(severaEmployees);
+            await _employeeRepository.UpdateSeveraIds(severaEmployees);
         }
     }
 }

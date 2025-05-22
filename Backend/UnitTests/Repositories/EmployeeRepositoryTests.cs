@@ -68,6 +68,7 @@ namespace UnitTests.Repositories
                 WorkPhoneNumber = "",
                 SeveraId = Guid.NewGuid(),
                 PersonalPhoneNumber = "",
+                Email = ""
             });
             await _context.SaveChangesAsync();
 
@@ -107,64 +108,6 @@ namespace UnitTests.Repositories
                     It.IsAny<Exception>(),
                     It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
                 Times.Once);
-        }
-        private List<EmployeeContractDTO> GenerateContracts()
-        {
-            var now = DateTime.UtcNow;
-
-            return new List<EmployeeContractDTO>
-            {
-                new ()
-                {
-                    Id = Guid.NewGuid(),
-                    Title = "Contract 1",
-                    FromDate = now.AddMonths(-5),
-                    ToDate = now.AddMonths(1),
-                    ExpectedHours = 160,
-                    SeveraId = Guid.NewGuid(),
-                    EmployeeId = Guid.NewGuid()
-                },
-                new ()
-                {
-                    Id = Guid.NewGuid(),
-                    Title = "Contract 2",
-                    FromDate = now.AddMonths(-4),
-                    ToDate = null,
-                    ExpectedHours = 165,
-                    SeveraId = Guid.NewGuid(),
-                    EmployeeId = Guid.NewGuid()
-                },
-                new ()
-                {
-                    Id = Guid.NewGuid(),
-                    Title = "Contract 3",
-                    FromDate = now.AddMonths(-3),
-                    ToDate = now.AddMonths(2),
-                    ExpectedHours = 170,
-                    SeveraId = Guid.NewGuid(),
-                    EmployeeId = Guid.NewGuid()
-                },
-                new ()
-                {
-                    Id = Guid.NewGuid(),
-                    Title = "Contract 4",
-                    FromDate = now.AddMonths(-2),
-                    ToDate = null,
-                    ExpectedHours = 175,
-                    SeveraId = Guid.NewGuid(),
-                    EmployeeId = Guid.NewGuid()
-                },
-                new ()
-                {
-                    Id = Guid.NewGuid(),
-                    Title = "Contract 5",
-                    FromDate = now.AddMonths(-1),
-                    ToDate = now.AddMonths(3),
-                    ExpectedHours = 180,
-                    SeveraId = Guid.NewGuid(),
-                    EmployeeId = Guid.NewGuid()
-                }
-            };
         }
     }
 }

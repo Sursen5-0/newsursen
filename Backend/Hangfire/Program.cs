@@ -29,6 +29,7 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day)
     .CreateLogger();
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddSerilog();
 builder.Services.AddHangfire(config =>
 {
     config.UseInMemoryStorage(); // Use in-memory storage for demo purposes
@@ -69,7 +70,6 @@ builder.Services.AddLogging(loggingbuilder =>
     .SetMinimumLevel(LogLevel.Trace)
     .AddConsole();
 });
-builder.Services.AddSerilog();
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())

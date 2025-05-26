@@ -20,9 +20,12 @@ namespace Infrastructure.Persistance.Configurations
 
             builder.Property(e => e.Id).ValueGeneratedNever();
             builder.Property(e => e.Description)
-                .HasMaxLength(1000);
+                .HasMaxLength(-1);
             builder.Property(e => e.Name)
                 .HasMaxLength(255);
+            builder.HasOne(d => d.Responsible).WithMany(p => p.Projects)
+                .HasForeignKey(d => d.ResponsibleId)
+                .OnDelete(DeleteBehavior.Restrict);
 
         }
     }

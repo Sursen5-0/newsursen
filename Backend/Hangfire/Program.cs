@@ -16,8 +16,8 @@ using Serilog.Events;
 using System.Net.Http.Headers;
 using Infrastructure.Common;
 
-var token = Environment.GetEnvironmentVariable("doppler_key");
-var environment = Environment.GetEnvironmentVariable("Environment");
+var token = Environment.GetEnvironmentVariable("DOPPLER_KEY");
+var environment = Environment.GetEnvironmentVariable("ENVIRONMENT");
 ArgumentNullException.ThrowIfNull(token);
 ArgumentNullException.ThrowIfNull(environment);
 

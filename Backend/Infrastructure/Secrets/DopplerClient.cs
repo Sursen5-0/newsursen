@@ -45,7 +45,7 @@ namespace Infrastructure.Secrets
                 case System.Net.HttpStatusCode.GatewayTimeout:
                     throw new Exception("Doppler service is temporarily unavailable");
                 default:
-                    throw new Exception($"Undhandled exception in SecretClient response with status code {response.StatusCode}");
+                    throw new Exception($"Undhandled exception in SecretClient response with status code {response.StatusCode} and message {await response.Content.ReadAsStringAsync()}");
             }
         }
     }

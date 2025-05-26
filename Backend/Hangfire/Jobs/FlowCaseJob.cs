@@ -1,4 +1,4 @@
-using Application.Secrets;
+using Domain.Interfaces.ExternalClients;
 using Infrastructure.FlowCase;
 
 

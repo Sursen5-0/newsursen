@@ -69,8 +69,10 @@ builder.Services.AddScoped<ISecretClient, DopplerClient>(provider =>
     httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
     return new DopplerClient(httpClient, token, environment);
 });
-
-builder.Services.AddHttpClient<ISeveraClient, SeveraClient>()
+builder.Services.AddHttpClient<ISeveraClient,SeveraClient>(client =>
+{
+    client.BaseAddress = new Uri("https://api.severa.visma.com/rest-api/v1.0/");
+})
     .ConfigurePrimaryHttpMessageHandler(provider =>
     {
         var logger = provider.GetRequiredService<ILogger<RetryHandler>>();
@@ -101,8 +103,11 @@ using (var scope = app.Services.CreateScope())
 
     jobManager.AddOrUpdate(
         "SynchronizeContracts",
-        () => scope.ServiceProvider.GetRequiredService<SeveraJobs>().SynchronizeContracts(),
-        "0 0 31 2 *");
+        () => scope.ServiceProvider.GetRequiredService<SeveraJobs>().SynchronizeContracts(), "0 0 31 2 *");
+    jobManager.AddOrUpdate(
+    "SynchronizeAbsence",
+    () => scope.ServiceProvider.GetRequiredService<SeveraJobs>().SynchronizeAbsence(), "0 0 31 2 *");
+
 }
 
 app.UseHangfireDashboard();

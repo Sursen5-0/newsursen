@@ -45,6 +45,7 @@ namespace UnitTests
                 .ReturnsAsync(responseMessage);
 
             var httpClient = new HttpClient(mockHandler.Object);
+            httpClient.BaseAddress = new Uri("https://www.test.com/");
             var severaClient = new SeveraClient(secretClientMock.Object, httpClient, secretClientLogMock.Object);
 
             // Act
@@ -72,6 +73,8 @@ namespace UnitTests
                 .ReturnsAsync(responseMessage);
 
             var httpClient = new HttpClient(mockHandler.Object);
+            httpClient.BaseAddress = new Uri("https://www.test.com/");
+
             var secretClientMock = new Mock<ISecretClient>();
             secretClientMock.Setup(s => s.GetSecretAsync(It.IsAny<string>(), It.IsAny<CancellationToken?>()))
                 .ReturnsAsync("dummy");
@@ -101,6 +104,8 @@ namespace UnitTests
                 });
 
             var httpClient = new HttpClient(mockHandler.Object);
+            httpClient.BaseAddress = new Uri("https://www.test.com/");
+
             var secretClientMock = new Mock<ISecretClient>();
             secretClientMock.Setup(s => s.GetSecretAsync(It.IsAny<string>(), It.IsAny<CancellationToken?>())).ReturnsAsync("dummy");
 

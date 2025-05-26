@@ -17,5 +17,10 @@ namespace Hangfire.Jobs
         {
             await employeeService.SynchronizeUnmappedSeveraIds();
         }
+
+        public async Task SynchronizeAbsence()
+        {
+            await employeeService.SynchronizeAbsence();
+        }
     }
 }

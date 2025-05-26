@@ -11,7 +11,12 @@ namespace Domain.Interfaces.Repositories
     {
         public Task<IEnumerable<EmployeeDTO>> GetEmployees(bool includeDisabled = false);
         public Task<IEnumerable<EmployeeDTO>> GetEmployeeWithoutSeveraIds(bool includeDisabled = false);
+        public Task<IEnumerable<AbsenceDTO>> GetAbsenceByExternalIDs(IEnumerable<Guid> ids);
         public Task InsertEmployeeContracts(IEnumerable<EmployeeContractDTO> employeeDTO);
         public Task UpdateSeveraIds(IEnumerable<SeveraEmployeeModel> employeeDTO);
+        public Task UpdateAbsences(IEnumerable<AbsenceDTO> absences);
+        public Task InsertAbsences(IEnumerable<AbsenceDTO> absences);
+
+
     }
 }

@@ -14,7 +14,7 @@ namespace IntegrationsTests;
 public class FlowCaseIntegrationsTests
 {
     private readonly FlowCaseClient _client;
-    private readonly DopplerClient _secretClient; // Mock or implement this in your test setup
+    private readonly DopplerClient _secretClient;
 
     public FlowCaseIntegrationsTests()
     {

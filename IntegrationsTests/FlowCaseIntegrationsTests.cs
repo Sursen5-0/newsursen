@@ -18,8 +18,8 @@ public class FlowCaseIntegrationsTests
 
     public FlowCaseIntegrationsTests()
     {
-        var token = Environment.GetEnvironmentVariable("doppler_key", EnvironmentVariableTarget.Machine);
-        var environment = Environment.GetEnvironmentVariable("Environment", EnvironmentVariableTarget.Machine);
+        var token = Environment.GetEnvironmentVariable("doppler_key");
+        var environment = Environment.GetEnvironmentVariable("Environment");
         var secretHttpClient = new HttpClient
         {
             BaseAddress = new Uri("https://api.doppler.com/v3/"),

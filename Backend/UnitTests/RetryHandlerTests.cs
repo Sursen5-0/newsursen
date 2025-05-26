@@ -1,5 +1,4 @@
-﻿using Infrastructure.Severa;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Moq.Protected;
 using Moq;
 using System;
@@ -8,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Infrastructure.Common;
 
 namespace UnitTests
 {

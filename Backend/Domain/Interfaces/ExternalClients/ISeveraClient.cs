@@ -7,5 +7,6 @@ namespace Domain.Interfaces.ExternalClients
         Task<string> GetToken();
         Task<EmployeeContractDTO> GetWorkContractByUserId(Guid userId);
         Task<SeveraEmployeeModel?> GetUserByEmail(string emails);
+        Task<IEnumerable<AbsenceDTO>?> GetAbsence();
     }
 }

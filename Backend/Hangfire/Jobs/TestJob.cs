@@ -1,15 +1,21 @@
-﻿using Application.Secrets;
-using Infrastructure.Severa;
+﻿using System.Diagnostics;
+using System.Threading.Tasks;
+using Domain.Interfaces.ExternalClients;
+using Microsoft.Extensions.Logging;
 
-namespace Hangfire.Jobs
+namespace Hangfire.Jobs;
+
+public class TestJob(IEntraClient entraClient, ILogger<TestJob> _logger)
 {
-    public class TestJob(SeveraClient severaClient, ILogger<TestJob> _logger)
+    public async Task WriteTest()
     {
-        public void WriteTest()
-        {
-            _logger.LogInformation("making call");
-            var key = severaClient.GetToken().Result;
-            _logger.LogInformation($"got secret for test:{key}");
-        }
+        _logger.LogInformation("making call");
+
+        var json = await entraClient.GetUsersJsonAsync();
+
+        _logger.LogInformation($"got users JSON: {json}");
+
+        Debug.WriteLine("Users JSON:");
+        Debug.WriteLine(json);
     }
 }

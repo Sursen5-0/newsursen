@@ -1,5 +1,4 @@
-﻿using Infrastructure.Severa;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Moq.Protected;
 using Moq;
 using System;
@@ -8,17 +7,16 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Infrastructure.Common;
 
 namespace UnitTests
 {
     public class RetryHandlerTests
     {
         [Fact]
-        public async Task SendAsync_Retries_OnRetriableStatusCode()
+        public async Task SendAsync_Retries3Times_OnRetriableStatusCode()
         {
             // Arrange
-            var retryCount = 0;
-
             var mockHandler = new Mock<HttpMessageHandler>();
             mockHandler.Protected()
                 .Setup<Task<HttpResponseMessage>>(
@@ -38,7 +36,7 @@ namespace UnitTests
             // Assert
             mockHandler.Protected().Verify(
                 "SendAsync",
-                Times.Exactly(4),
+                Times.Exactly(3),
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             );

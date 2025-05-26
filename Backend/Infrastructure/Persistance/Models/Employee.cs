@@ -10,6 +10,7 @@ public partial class Employee : BaseEntity
     public string FirstName { get; set; } = null!;
 
     public string LastName { get; set; } = null!;
+    public string Email { get; set; } = null!;
 
     public DateOnly HireDate { get; set; }
 
@@ -19,21 +20,17 @@ public partial class Employee : BaseEntity
 
     public Guid BusinessUnitId { get; set; }
 
-    public Guid? ManagerId { get; set; }
-
     public string? WorkPhoneNumber { get; set; }
 
     public string? PersonalPhoneNumber { get; set; }
 
-    public Guid SeveraId { get; set; }
+    public string? HubSpotId { get; set; }
+    public Guid? SeveraId { get; set; }
+    public Guid? ManagerId { get; set; }
 
-    public string HubSpotId { get; set; } = null!;
+    public Guid EntraId { get; set; }
 
-    public string TimId { get; set; } = null!;
-
-    public string EntraId { get; set; } = null!;
-
-    public string FlowCaseId { get; set; } = null!;
+    public string? FlowCaseId { get; set; }
 
     public virtual ICollection<Absence> Absences { get; set; } = new List<Absence>();
 

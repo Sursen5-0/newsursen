@@ -1,4 +1,4 @@
-﻿using Application.Secrets;
+﻿using Domain.Interfaces.ExternalClients;
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -21,7 +21,6 @@ namespace Infrastructure.Secrets
             _httpClient = httpClient;
 
             _httpClient = httpClient;
-            _httpClient.BaseAddress = new Uri("https://api.doppler.com/v3/");
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", doppler_key);
         }
         public async Task<string> GetSecretAsync(string key, CancellationToken? token = null)

@@ -32,20 +32,6 @@ jobs:
     - name: Build Solution
       run: dotnet build --configuration Release
       
-    - name: Set doppler_key as machine variable
-      run: |
-        [System.Environment]::SetEnvironmentVariable("doppler_key", "${{ secrets.DOPPLER_KEY }}", "Machine")
-      shell: pwsh
-
-    - name: Set env as machine variable
-      run: |
-        [System.Environment]::SetEnvironmentVariable("Environment", "${{ secrets.Env }}", "Machine")
-      shell: pwsh
-    
-    - name: Build Docker Image
-      run: |
-        docker build . -f Backend/Hangfire/Dockerfile -t bjand49/sursen-jobs:latest
-
     - name: Run Unit Tests
       run: dotnet test --configuration Release --no-build --verbosity normal
       

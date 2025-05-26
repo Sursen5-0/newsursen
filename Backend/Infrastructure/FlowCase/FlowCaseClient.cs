@@ -1,5 +1,5 @@
 using Application.Secrets;
-using Infrastructure.Severa.Models;
+using Infrastructure.Secrets;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -14,20 +14,28 @@ namespace Infrastructure.FlowCase
 {
     public class FlowCaseClient
     {
-        private readonly ISecretClient _secretClient;
+        private readonly string _flowCaseSecret;
         private readonly HttpClient _client;
         private const string FLOWCASE_KEY = "FLOWCASE_KEY";
 
         public FlowCaseClient(ISecretClient secretClient, HttpClient httpClient)
         {
-            _secretClient = secretClient;
+            _flowCaseSecret = secretClient.GetSecretAsync(FLOWCASE_KEY).Result;
             _client = httpClient;
         }
 
-        public Task<string> GetApiKey()
+        public async Task<string> GetApiKey()
         {
-            // Always fetch the latest key asynchronously
-            return _secretClient.GetSecretAsync(FLOWCASE_KEY);
+            return _flowCaseSecret;
+/*            if (string.IsNullOrEmpty(_flowCaseSecret))
+            {
+                throw new InvalidOperationException("FlowCase API key is not set or is empty.");
+            }
+            else
+            {
+              
+                return _flowCaseSecret;
+            }*/
         }
 
         public async Task<string> GetCV()

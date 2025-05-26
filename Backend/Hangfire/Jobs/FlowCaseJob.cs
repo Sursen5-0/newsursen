@@ -17,11 +17,5 @@ namespace HangFire.Jobs
             _logger = logger;
         }
 
-        public void WriteTest()
-        {
-            _logger.LogInformation("Fetching CV");
-            var key = _flowCaseClient.GetCV().Result;
-            _logger.LogInformation($"got secret for test:{key}");
-        }
     }
 }

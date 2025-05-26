@@ -27,22 +27,13 @@ namespace Infrastructure.FlowCase
             _client = httpClient;
         }
 
-        public async Task<string> GetApiKey()
-        {
-            return _flowCaseSecret;
-
-        }
         public async Task<FlowcaseReturnModel<FlowcaseUserModel>> GetUser(string email)
         {
             var uri = $"/api/v1/users/find?email={Uri.EscapeDataString(email)}";
             return await MakeRequest<FlowcaseUserModel>(uri);
         }
 
-        public async Task<string> GetCV()
-        {
-            var uri = $"/api/v1/cv";
-            return "await MakeRequest<string>(uri)";
-        }
+
         private async Task<FlowcaseReturnModel<T>> MakeRequest<T>(string path)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, path);

@@ -107,7 +107,7 @@ namespace Infrastructure.Severa
         }
         public async Task<IEnumerable<AbsenceDTO>?> GetAbsence()
         {
-            var response = await GetEntities<SeveraActivityModel>($"activities?&activityCategories=Absences&userGuids=0162a796-5739-d14b-0ad7-a01e3c4e762c");
+            var response = await GetEntities<SeveraActivityModel>($"activities?&activityCategories=Absences");
 
             if (!response.IsSuccess)
             {
@@ -126,15 +126,15 @@ namespace Infrastructure.Severa
 
         private async Task<SeveraReturnModel<T>> GetEntity<T>(string path)
         {
-
             return await MakeRequest<T>(path);
         }
+
         private async Task<SeveraReturnModel<IEnumerable<T>>> GetEntities<T>(string path)
         {
             var model = new SeveraReturnModel<IEnumerable<T>>();
             var list = new List<T>();
             string? nextToken = null;
-            var moreData = true;
+            bool moreData;
             do
             {
                 var result = await MakeRequest<List<T>>(path, nextToken);
@@ -160,6 +160,7 @@ namespace Infrastructure.Severa
 
             var request = new HttpRequestMessage(HttpMethod.Get, path);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await GetToken());
+
             var responseMessage = await _client.SendAsync(request);
             var returnModel = new SeveraReturnModel<T>();
             var apiResponse = await responseMessage.Content.ReadAsStringAsync();
@@ -178,7 +179,6 @@ namespace Infrastructure.Severa
                         responseMessage.Headers.TryGetValues(NEXT_PAGE_TOKEN, out var values);
                         if (values != null && values.Count() != 0)
                         {
-
                             returnModel.NextToken = values.First();
                         }
                     }

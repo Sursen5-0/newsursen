@@ -18,8 +18,9 @@ namespace Infrastructure.Severa.Models
                 {
                     return result;
                 }
-                // If multiple IDs are present (fx "id1;id2"), parse the last one. since the first might be the id of a reccuring id
-                //Get the last item in the collection
+                // If multiple IDs are present (fx "guid1;guid2"), parse the last one. since the first might be the id of a reccuring id from severa,
+                // and the last one is the unique id for the activity.
+
                 else
                 {
                     var splitGuid = Identifier.Split(';');

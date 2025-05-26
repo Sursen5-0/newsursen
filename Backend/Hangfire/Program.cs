@@ -60,7 +60,7 @@ builder.Services.AddScoped<ISecretClient, DopplerClient>(provider =>
 });
 builder.Services.AddHttpClient<ISeveraClient,SeveraClient>(client =>
 {
-    client.BaseAddress = new Uri("https://api.severa.visma.com/rest-api/v1.0/"); // Replace with your actual base URL
+    client.BaseAddress = new Uri("https://api.severa.visma.com/rest-api/v1.0/");
 })
     .ConfigurePrimaryHttpMessageHandler(provider =>
     {

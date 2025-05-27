@@ -11,7 +11,7 @@ public class TestJob(IEntraClient entraClient, ILogger<TestJob> _logger)
     {
         _logger.LogInformation("making call");
 
-        var json = await entraClient.GetUsersJsonAsync();
+        var json = await entraClient.GetTokenAsync();
 
         _logger.LogInformation($"got users JSON: {json}");
 

@@ -110,5 +110,43 @@ namespace Infrastructure.Persistance.Repositories
             _db.Absences.AddRange(absences.Select(x => x.ToEntity()));
             await _db.SaveChangesAsync();
         }
+
+
+        public async Task InsertOrUpdateEmployees(IEnumerable<EmployeeDTO> dtos)
+        {
+            if (dtos == null) throw new ArgumentNullException(nameof(dtos));
+
+            var existingIds = await _db.Employees
+                .AsNoTracking()
+                .Select(e => e.EntraId)
+                .ToListAsync();
+
+            foreach (var dto in dtos)
+            {
+                if (dto == null)
+                {
+                    _logger.LogWarning("Skipped null EmployeeDTO");
+                    continue;
+                }
+
+                var entity = dto.ToEntity();
+                if (existingIds.Contains(dto.EntraId))
+                {
+                    
+                    var tracked = await _db.Employees
+                        .FirstAsync(e => e.EntraId == dto.EntraId);
+
+                    _db.Entry(tracked).CurrentValues.SetValues(entity);
+                    _logger.LogInformation("Updated employee with EntraId {EntraId}", dto.EntraId);
+                }
+                else
+                {
+                    await _db.Employees.AddAsync(entity);
+                    _logger.LogInformation("Inserted new employee with EntraId {EntraId}", dto.EntraId);
+                }
+            }
+
+            await _db.SaveChangesAsync();
+        }
     }
 }

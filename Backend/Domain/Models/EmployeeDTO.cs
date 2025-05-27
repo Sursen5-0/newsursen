@@ -9,7 +9,30 @@ namespace Domain.Models
     public class EmployeeDTO
     {
         public Guid Id { get; set; }
+
+        public string FirstName { get; set; } = null!;
+
+        public string LastName { get; set; } = null!;
         public string Email { get; set; } = null!;
+
+        public DateOnly HireDate { get; set; }
+
+        public DateOnly? LeaveDate { get; set; }
+
+        public DateOnly Birthdate { get; set; }
+
+        public Guid BusinessUnitId { get; set; }
+
+        public string? WorkPhoneNumber { get; set; }
+
+        public string? PersonalPhoneNumber { get; set; }
+
+        public string? HubSpotId { get; set; }
         public Guid? SeveraId { get; set; }
+        public Guid? ManagerId { get; set; }
+
+        public Guid EntraId { get; set; }
+
+        public string? FlowCaseId { get; set; }
     }
 }

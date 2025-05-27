@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Application.Services
 {
-    public class EmployeeService(ISeveraClient _severaClient, IEmployeeRepository _employeeRepository, ILogger<EmployeeService> _logger) : IEmployeeService
+    public class EmployeeService(ISeveraClient _severaClient, IEntraClient _entraClient, IEmployeeRepository _employeeRepository, ILogger<EmployeeService> _logger) : IEmployeeService
     {
         public async Task SynchronizeAbsence()
         {
@@ -98,6 +98,18 @@ namespace Application.Services
                 severaEmployees.Add(data);
             }
             await _employeeRepository.UpdateSeveraIds(severaEmployees);
+        }
+
+        public async Task SynchronizeEmployeesAsync()
+        {
+            _logger.LogInformation("Start Entra employee sync");
+
+            var allUsers = await _entraClient.GetAllUsersAsync();
+            _logger.LogInformation("Total Entra users fetched: {TotalCount}", allUsers.Count);
+
+            await _employeeRepository.InsertOrUpdateEmployees(allUsers);
+
+            _logger.LogInformation("Finished Entra employee sync");
         }
     }
 }

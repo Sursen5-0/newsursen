@@ -20,6 +20,7 @@ namespace UnitTests.Services
         private readonly Mock<IEmployeeRepository> _employeeRepositoryMock = new Mock<IEmployeeRepository>();
         private readonly Mock<ISeveraClient> _severaClientMock = new Mock<ISeveraClient>();
         private readonly Mock<ILogger<EmployeeService>> _loggerMock = new Mock<ILogger<EmployeeService>>();
+        private readonly Mock<IEntraClient> _entraClientMock = new Mock<IEntraClient>();
         private EmployeeService _service;
 
         [Fact]
@@ -30,7 +31,7 @@ namespace UnitTests.Services
             _employeeRepositoryMock.Setup(x => x.GetEmployees(It.IsAny<bool>())).ReturnsAsync(emptyEmployeeList);
             _employeeRepositoryMock.Setup(x => x.InsertEmployeeContracts(It.IsAny<IEnumerable<EmployeeContractDTO>>())).Verifiable();
             
-            _service = new EmployeeService(_severaClientMock.Object, _employeeRepositoryMock.Object, _loggerMock.Object);
+            _service = new EmployeeService(_severaClientMock.Object, _entraClientMock.Object, _employeeRepositoryMock.Object, _loggerMock.Object);
 
 
             // Act
@@ -49,7 +50,7 @@ namespace UnitTests.Services
             _employeeRepositoryMock.Setup(x => x.GetEmployees(It.IsAny<bool>())).ReturnsAsync(emptyEmployeeList);
             _employeeRepositoryMock.Setup(x => x.InsertEmployeeContracts(It.IsAny<IEnumerable<EmployeeContractDTO>>())).Verifiable();
 
-            _service = new EmployeeService(_severaClientMock.Object, _employeeRepositoryMock.Object, _loggerMock.Object);
+            _service = new EmployeeService(_severaClientMock.Object, _entraClientMock.Object, _employeeRepositoryMock.Object, _loggerMock.Object);
 
 
             // Act
@@ -76,7 +77,7 @@ namespace UnitTests.Services
             _employeeRepositoryMock.Setup(x => x.InsertEmployeeContracts(It.IsAny<IEnumerable<EmployeeContractDTO>>())).Verifiable();
             _severaClientMock.Setup(x => x.GetWorkContractByUserId(It.IsAny<Guid>())).ReturnsAsync(new EmployeeContractDTO());
 
-            _service = new EmployeeService(_severaClientMock.Object, _employeeRepositoryMock.Object, _loggerMock.Object);
+            _service = new EmployeeService(_severaClientMock.Object, _entraClientMock.Object, _employeeRepositoryMock.Object, _loggerMock.Object);
 
 
             // Act
@@ -98,7 +99,7 @@ namespace UnitTests.Services
             _severaClientMock.Setup(x => x.GetUserByEmail(It.IsAny<string>())).ReturnsAsync(new SeveraEmployeeModel());
             _employeeRepositoryMock.Setup(x => x.UpdateSeveraIds(It.IsAny<List<SeveraEmployeeModel>>())).Verifiable();
 
-            _service = new EmployeeService(_severaClientMock.Object, _employeeRepositoryMock.Object, _loggerMock.Object);
+            _service = new EmployeeService(_severaClientMock.Object, _entraClientMock.Object, _employeeRepositoryMock.Object, _loggerMock.Object);
 
 
             // Act

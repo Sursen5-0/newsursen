@@ -3,18 +3,19 @@ using Domain.Interfaces.ExternalClients;
 using Domain.Interfaces.Repositories;
 using Domain.Interfaces.Services;
 using Hangfire;
+using Hangfire.Common;
 using Hangfire.Jobs;
+using Infrastructure.Common;
+using Infrastructure.Entra;
 using Infrastructure.Persistance;
 using Infrastructure.Persistance.Repositories;
 using Infrastructure.Secrets;
 using Infrastructure.Severa;
-using Infrastructure.Entra;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Serilog.Events;
 using System.Net.Http.Headers;
-using Infrastructure.Common;
 
 var token = Environment.GetEnvironmentVariable("doppler_key", EnvironmentVariableTarget.Machine);
 var environment = Environment.GetEnvironmentVariable("Environment", EnvironmentVariableTarget.Machine);
@@ -53,6 +54,7 @@ builder.Services.AddScoped<TestJob>();
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 builder.Services.AddScoped<SeveraJobs>();
+builder.Services.AddScoped<EntraJobs>();
 builder.Services.AddDbContext<SursenContext>((services, options) =>
 {
     var secretClient = services.GetRequiredService<ISecretClient>();
@@ -108,6 +110,10 @@ using (var scope = app.Services.CreateScope())
     "SynchronizeAbsence",
     () => scope.ServiceProvider.GetRequiredService<SeveraJobs>().SynchronizeAbsence(), "0 0 31 2 *");
 
+    jobManager.AddOrUpdate(
+        "SynchronizeEntraEmployees",
+        () => scope.ServiceProvider.GetRequiredService<EntraJobs>().GetAllEmployeesEntra(),
+        Cron.Daily);
 }
 
 app.UseHangfireDashboard();

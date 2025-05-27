@@ -100,11 +100,9 @@ namespace Infrastructure.Entra
                     break;
                 }
 
-                // Deserialize raw JSON into EntraEmployeePage
                 var page = await response.Content.ReadFromJsonAsync<EntraEmployeePage<EntraEmployeeModel>>();
                 if (page?.Value != null)
                 {
-                    // Map each raw model to EmployeeDTO via JsonToDtoEmployeeMapper
                     foreach (var raw in page.Value)
                     {
                         var dto = JsonToDtoEmployeeMapper.ToDto(raw);

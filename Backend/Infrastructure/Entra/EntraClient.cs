@@ -76,7 +76,9 @@ namespace Infrastructure.Entra
 
         public async Task<List<EmployeeDTO>> GetAllUsersAsync()
         {
-            var accessToken = await GetTokenAsync();
+            try
+            {
+                var accessToken = await GetTokenAsync();
             if (string.IsNullOrEmpty(accessToken))
             {
                 _logger.LogError("No access token available, aborting user retrieval");
@@ -103,6 +105,7 @@ namespace Infrastructure.Entra
                 var page = await response.Content.ReadFromJsonAsync<EntraEmployeePage<EntraEmployeeModel>>();
                 if (page?.Value != null)
                 {
+
                     foreach (var raw in page.Value)
                     {
                         var dto = JsonToDtoEmployeeMapper.ToDto(raw);
@@ -115,7 +118,22 @@ namespace Infrastructure.Entra
                 nextLink = page?.NextLink;
             }
 
-            return dtos;
+                return dtos;
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError(ex, "HTTP error fetching Graph users");
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogError(ex, "JSON error parsing Graph users response");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error in GetAllUsersAsync");
+            }
+
+            return new List<EmployeeDTO>();
         }
     }
 }

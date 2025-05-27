@@ -18,7 +18,7 @@ namespace Infrastructure.Severa.Models
         [JsonPropertyName("isClosed")]
         public bool IsClosed { get; set; }
         [JsonPropertyName("projectOwner")]
-        public SimpleUserModel User { get; set; }
+        public SimpleReferenceModel User { get; set; }
         public Guid OwnerId => User.Id;
 
     }

@@ -9,5 +9,6 @@ namespace Domain.Interfaces.ExternalClients
         Task<SeveraEmployeeModel?> GetUserByEmail(string emails);
         Task<IEnumerable<AbsenceDTO>> GetAbsence();
         Task<IEnumerable<ProjectDTO>> GetProjects();
+        Task<IEnumerable<ProjectPhaseDTO>> GetPhases(IEnumerable<Guid> projectIds);
     }
 }

@@ -16,10 +16,10 @@ namespace Infrastructure.Persistance.Repositories
 
     public class ProjectRepository(SursenContext _db, ILogger<ProjectRepository> _logger) : IProjectRepository
     {
-        public async Task<IEnumerable<ProjectDTO>> GetProjects(bool includeActive = false)
+        public async Task<IEnumerable<ProjectDTO>> GetProjects(bool includeInactive = true)
         {
             var projects = _db.Projects.AsQueryable();
-            if (!includeActive)
+            if (!includeInactive)
             {
                 projects = projects.Where(x => !x.IsClosed);
             }
@@ -53,10 +53,67 @@ namespace Infrastructure.Persistance.Repositories
         public async Task InsertProjects(IEnumerable<ProjectDTO> projects)
         {
             _logger.LogInformation("Inserting {Count} new projects", projects.Count());
-            
+
             var items = projects.Select(x => x.ToEntity());
-            _db.AddRange(items);
+            _db.Projects.AddRange(items);
             await _db.SaveChangesAsync();
+        }
+
+        public async Task<IEnumerable<ProjectPhaseDTO>> GetPhases(bool includeInactive = true)
+        {
+            var phases = _db.ProjectPhases.AsQueryable();
+            if (!includeInactive)
+            {
+                phases = phases.Where(x => x.DeadLine < DateTime.Now);
+            }
+            return await phases.Select(x => x.ToDto()).ToListAsync();
+        }
+
+        public async Task InsertPhases(IEnumerable<ProjectPhaseDTO> phases)
+        {
+            _logger.LogInformation("Inserting {Count} new phases", phases.Count());
+            var items = phases.Select(x => x.ToEntity());
+
+            var entityDic = items.ToDictionary(x => x.ExternalId);
+            var dtoDic = phases.ToDictionary(x => x.ExternalId);
+            foreach (var item in items)
+            {
+                var phase = dtoDic[item.ExternalId];
+                if (phase != null || phase.ExternalParentPhaseId == null)
+                {
+                    continue;
+                }
+                item.ParentPhase = entityDic[phase.ExternalParentPhaseId.Value];
+            }
+
+            _db.ProjectPhases.AddRange(items);
+            await _db.SaveChangesAsync();
+
+        }
+
+        public async Task UpdatePhases(IEnumerable<ProjectPhaseDTO> phases)
+        {
+            _logger.LogInformation("Updating {Count} phases", phases.Count());
+            var phaseIds = phases.Select(x => x.ExternalId).ToHashSet();
+            var dbPhases = _db.ProjectPhases.Where(x => phaseIds.Contains(x.ExternalId)).ToDictionary(x => x.ExternalId);
+            var phaseFixed = phases.Select(x => x.ToEntity()).ToDictionary(x => x.ExternalId);
+            var nowDate = DateTime.Now;
+            foreach (var phase in dbPhases)
+            {
+                if (phaseFixed.TryGetValue(phase.Key, out var updatedProject))
+                {
+                    updatedProject.Id = phase.Value.Id;
+                    updatedProject.CreatedAt = phase.Value.CreatedAt;
+                    updatedProject.UpdatedAt = nowDate;
+                    _db.ProjectPhases.Entry(phase.Value).CurrentValues.SetValues(updatedProject);
+                }
+                else
+                {
+                    _logger.LogError("Phases intended for update not found in input list. ExternalId: {project.Key}", phase.Key);
+                }
+            }
+            await _db.SaveChangesAsync();
+
         }
     }
 }

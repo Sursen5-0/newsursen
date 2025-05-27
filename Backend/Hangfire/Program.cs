@@ -25,7 +25,18 @@ Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
     .MinimumLevel.Override("Microsoft.AspNetCore.Hosting", LogEventLevel.Warning)
     .MinimumLevel.Override("Microsoft.AspNetCore.Routing", LogEventLevel.Warning)
-    .Enrich.FromLogContext()
+    .MinimumLevel.Override("Microsoft.AspNetCore.Server.Kestrel", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.AspNetCore.Http", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.Extensions.Http", LogEventLevel.Warning)
+    .MinimumLevel.Override("System.Net.Http.HttpClient", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Infrastructure", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Model.Validation", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Query", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Update", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
+    .MinimumLevel.Override("System.Data.SqlClient", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.Data.SqlClient", LogEventLevel.Warning).Enrich.FromLogContext()
     .WriteTo.Console()
     .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day)
     .CreateLogger();
@@ -109,7 +120,9 @@ using (var scope = app.Services.CreateScope())
     jobManager.AddOrUpdate(
         "SynchronizeProjects",
         () => scope.ServiceProvider.GetRequiredService<SeveraJobs>().SynchronizeProjects(), "0 0 31 2 *");
-
+    jobManager.AddOrUpdate(
+        "SynchronizePhases",
+        () => scope.ServiceProvider.GetRequiredService<SeveraJobs>().SynchronizePhases(), "0 0 31 2 *");
 }
 
 app.UseHangfireDashboard();

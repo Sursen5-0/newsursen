@@ -112,12 +112,12 @@ namespace Infrastructure.Severa
             if (!response.IsSuccess)
             {
                 _logger.LogError($"Severa returned {response.Message} in abscence");
-                return null;
+                return [];
             }
             else if (response.Data == null)
             {
                 _logger.LogError($"Severa returned no error for call for abscence, but didnt return any data");
-                return null;
+                return [];
             }
             response.Data = response.Data.Where(x => Guid.TryParse(x.Identifier, out _));
             return response.Data.Select(x => x.ToDto());
@@ -130,33 +130,72 @@ namespace Infrastructure.Severa
             if (!response.IsSuccess)
             {
                 _logger.LogError($"Severa returned {response.Message} in projects");
-                return null;
+                return [];
             }
             else if (response.Data == null)
             {
                 _logger.LogError($"Severa returned no error for call for projects, but didnt return any data");
-                return null;
+                return [];
             }
             return response.Data.Select(x => x.ToDto());
 
         }
+
+        public async Task<IEnumerable<ProjectPhaseDTO>> GetPhases(IEnumerable<Guid> projectIds)
+        {
+            var increment = 20;
+            var skipAmount = 0;
+            var takeAmount = increment;
+            var list = new List<SeveraPhaseModel>();
+
+            var rounds = projectIds.Count() / increment;
+            int i = 0;
+            var response = new SeveraReturnModel<IEnumerable<SeveraPhaseModel>>();
+            do
+            {
+                _logger.LogInformation($"Getting batch {i} out of {rounds}");
+                var calledItems = string.Join('&', projectIds.Skip(skipAmount).Take(takeAmount).Select(x => "projectGuids=" + x));
+                response = await GetEntities<SeveraPhaseModel>($"phases?{calledItems}");
+                if (!response.IsSuccess)
+                {
+                    _logger.LogError($"Severa returned {response.Message} in phases");
+                    return [];
+                }
+                else if (response.Data == null)
+                {
+                    _logger.LogError($"Severa returned no error for call for phases, but didnt return any data");
+                    return [];
+                }
+                list.AddRange(response.Data);
+                skipAmount += increment;
+                i++;
+            }
+            while (skipAmount < projectIds.Count() && response.IsSuccess);
+
+            return list.Select(x => x.ToDto());
+        }
+
         private async Task<SeveraReturnModel<T>> GetEntity<T>(string path)
         {
             return await MakeRequest<T>(path);
         }
-
         private async Task<SeveraReturnModel<IEnumerable<T>>> GetEntities<T>(string path)
         {
             var model = new SeveraReturnModel<IEnumerable<T>>();
             var list = new List<T>();
             string? nextToken = null;
             bool moreData;
+            path = path + "&rowCount=50";
             do
             {
                 var result = await MakeRequest<List<T>>(path, nextToken);
                 if (result != null && result.Data != null)
                 {
                     list.AddRange(result.Data);
+                }
+                else
+                {
+                    _logger.LogError($"got the following error {result.Message} for query: {path}");
                 }
                 moreData = result != null && result.IsSuccess && !string.IsNullOrWhiteSpace(result.NextToken);
                 model.IsSuccess = result?.IsSuccess ?? false;
@@ -208,7 +247,6 @@ namespace Infrastructure.Severa
             returnModel.StatusCode = responseMessage.StatusCode;
             return returnModel;
         }
-
 
     }
 }

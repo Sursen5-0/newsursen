@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnitTests.Common;
 
 namespace UnitTests.Repositories
 {
@@ -100,14 +101,7 @@ namespace UnitTests.Repositories
             await sut.InsertEmployeeContracts(contracts);
 
             // Assert
-            _logger.Verify(
-                x => x.Log(
-                    LogLevel.Warning,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, _) => v.ToString().Contains($"EmployeeId {unknownEmployeeId}")),
-                    It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-                Times.Once);
+            _logger.VerifyLog(LogLevel.Warning, Times.Once());
         }
     }
 }

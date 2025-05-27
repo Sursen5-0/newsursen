@@ -47,4 +47,5 @@ public partial class Employee : BaseEntity
     public virtual Employee? Manager { get; set; }
 
     public virtual ICollection<Opportunity> Opportunities { get; set; } = new List<Opportunity>();
+    public virtual ICollection<Project> Projects { get; set; } = new List<Project>();
 }

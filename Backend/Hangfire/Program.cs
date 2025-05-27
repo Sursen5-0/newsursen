@@ -52,6 +52,7 @@ builder.Services.AddHttpClient();
 builder.Services.AddScoped<TestJob>();
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
 builder.Services.AddScoped<SeveraJobs>();
 builder.Services.AddDbContext<SursenContext>((services, options) =>
 {
@@ -98,15 +99,16 @@ using (var scope = app.Services.CreateScope())
 
     jobManager.AddOrUpdate(
         "SynchronizeEmployees",
-        () => scope.ServiceProvider.GetRequiredService<SeveraJobs>().SynchronizeEmployees(),
-        "0 0 31 2 *");
-
+        () => scope.ServiceProvider.GetRequiredService<SeveraJobs>().SynchronizeEmployees(),"0 0 31 2 *");
     jobManager.AddOrUpdate(
         "SynchronizeContracts",
         () => scope.ServiceProvider.GetRequiredService<SeveraJobs>().SynchronizeContracts(), "0 0 31 2 *");
     jobManager.AddOrUpdate(
-    "SynchronizeAbsence",
-    () => scope.ServiceProvider.GetRequiredService<SeveraJobs>().SynchronizeAbsence(), "0 0 31 2 *");
+        "SynchronizeAbsence",
+        () => scope.ServiceProvider.GetRequiredService<SeveraJobs>().SynchronizeAbsence(), "0 0 31 2 *");
+    jobManager.AddOrUpdate(
+        "SynchronizeProjects",
+        () => scope.ServiceProvider.GetRequiredService<SeveraJobs>().SynchronizeProjects(), "0 0 31 2 *");
 
 }
 

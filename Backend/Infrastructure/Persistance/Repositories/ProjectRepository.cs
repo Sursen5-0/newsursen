@@ -72,21 +72,19 @@ namespace Infrastructure.Persistance.Repositories
         public async Task InsertPhases(IEnumerable<ProjectPhaseDTO> phases)
         {
             _logger.LogInformation("Inserting {Count} new phases", phases.Count());
-            var items = phases.Select(x => x.ToEntity());
+            var items = phases.ToDictionary(x =>x, x=> x.ToEntity());
 
-            var entityDic = items.ToDictionary(x => x.ExternalId);
-            var dtoDic = phases.ToDictionary(x => x.ExternalId);
+            var entityLookup = items.ToDictionary(x => x.Value.ExternalId);
             foreach (var item in items)
             {
-                var phase = dtoDic[item.ExternalId];
-                if (phase != null || phase.ExternalParentPhaseId == null)
+                if (item.Key.ExternalParentPhaseId == null)
                 {
                     continue;
                 }
-                item.ParentPhase = entityDic[phase.ExternalParentPhaseId.Value];
+                item.Value.ParentPhaseId = entityLookup[item.Key.ExternalParentPhaseId.Value].Value.Id;
             }
 
-            _db.ProjectPhases.AddRange(items);
+            _db.ProjectPhases.AddRange(items.Values);
             await _db.SaveChangesAsync();
 
         }

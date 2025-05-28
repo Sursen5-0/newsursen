@@ -153,7 +153,7 @@ namespace Infrastructure.Severa
             var response = new SeveraReturnModel<IEnumerable<SeveraPhaseModel>>();
             do
             {
-                _logger.LogInformation($"Getting batch {i} out of {rounds}");
+                _logger.LogInformation($"Getting batch {i+1} out of {rounds+1}");
                 var calledItems = string.Join('&', projectIds.Skip(skipAmount).Take(takeAmount).Select(x => "projectGuids=" + x));
                 response = await GetEntities<SeveraPhaseModel>($"phases?{calledItems}");
                 if (!response.IsSuccess)

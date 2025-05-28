@@ -94,6 +94,7 @@ namespace Application.Services
 
             var phaseArray = phases.ToArray();
             _logger.LogInformation("Synchronizing on {0} projects phases", phaseArray.Length);
+
             for (int i = 0; i < phaseArray.Count(); i++)
             {
                 var project = projects.FirstOrDefault(x => x.ExternalId == phaseArray[i].ExternalProjectId);
@@ -106,8 +107,8 @@ namespace Application.Services
             }
 
 
-            var updateList = phaseArray.Where(a => dbExternalPhaseIds.Contains(a.ExternalId)).ToList();
-            var insertList = phaseArray.Where(a => !dbExternalPhaseIds.Contains(a.ExternalId)).ToList();
+            var updateList = phaseArray.Where(x => dbExternalPhaseIds.Contains(x.ExternalId)).ToList();
+            var insertList = phaseArray.Where(x => !dbExternalPhaseIds.Contains(x.ExternalId)).ToList();
 
             _logger.LogInformation($"Done pulling data from Severa, starting insert to db");
             await _projectRepository.InsertPhases(insertList);

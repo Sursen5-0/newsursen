@@ -22,7 +22,7 @@ namespace Infrastructure.Severa
     {
         private readonly string _severaClientId;
         private readonly string _severaClientSecret;
-        private static readonly string SCOPE = "users:read,hours:read,activities:read";
+        private static readonly string SCOPE = "users:read,hours:read,activities:read,projects:read";
         private static readonly string SEVERA_CLIENT_SECRET = "SEVERA_CLIENT_SECRET";
         private static readonly string SEVERA_CLIENT_ID = "SEVERA_CLIENT_ID";
         private static readonly string NEXT_PAGE_TOKEN = "NextPageToken";
@@ -105,7 +105,7 @@ namespace Infrastructure.Severa
             }
             return response.Data.FirstOrDefault();
         }
-        public async Task<IEnumerable<AbsenceDTO>?> GetAbsence()
+        public async Task<IEnumerable<AbsenceDTO>> GetAbsence()
         {
             var response = await GetEntities<SeveraActivityModel>($"activities?&activityCategories=Absences");
 
@@ -116,14 +116,30 @@ namespace Infrastructure.Severa
             }
             else if (response.Data == null)
             {
-                _logger.LogError($"Severa returned no error for call for user, but didnt return any data");
+                _logger.LogError($"Severa returned no error for call for abscence, but didnt return any data");
                 return null;
             }
             response.Data = response.Data.Where(x => Guid.TryParse(x.Identifier, out _));
             return response.Data.Select(x => x.ToDto());
 
         }
+        public async Task<IEnumerable<ProjectDTO>> GetProjects()
+        {
+            var response = await GetEntities<SeveraProjectModel>($"projects?");
 
+            if (!response.IsSuccess)
+            {
+                _logger.LogError($"Severa returned {response.Message} in projects");
+                return null;
+            }
+            else if (response.Data == null)
+            {
+                _logger.LogError($"Severa returned no error for call for projects, but didnt return any data");
+                return null;
+            }
+            return response.Data.Select(x => x.ToDto());
+
+        }
         private async Task<SeveraReturnModel<T>> GetEntity<T>(string path)
         {
             return await MakeRequest<T>(path);
@@ -192,5 +208,7 @@ namespace Infrastructure.Severa
             returnModel.StatusCode = responseMessage.StatusCode;
             return returnModel;
         }
+
+
     }
 }

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Application.Services
 {
-    public class EmployeeService(ISeveraClient _severaClient, IEntraClient _entraClient, IEmployeeRepository _employeeRepository, ILogger<EmployeeService> _logger) : IEmployeeService
+    public class EmployeeService(ISeveraClient _severaClient, IEntraClient _entraClient, IEmployeeRepository _employeeRepository, IProjectRepository _projectRepository, ILogger<EmployeeService> _logger) : IEmployeeService
     {
         public async Task SynchronizeAbsence()
         {
@@ -81,6 +81,41 @@ namespace Application.Services
             await _employeeRepository.InsertEmployeeContracts(contracts);
 
             _logger.LogInformation($"Done synchronizing contracts");
+        }
+
+        public async Task SynchronizeProjects()
+        {
+            _logger.LogInformation($"Start synchronizing of contracts");
+            var dbProjects = await _projectRepository.GetProjects();
+            var projects = await _severaClient.GetProjects();
+            var dbExternalIds = new HashSet<Guid>(dbProjects.Select(x => x.ExternalId));
+            var employees = await _employeeRepository.GetEmployees();
+
+            _logger.LogInformation("Synchronizing on {projects.Count()} projects", projects.Count());
+            var projectArray = projects.ToArray();
+
+            for (int i = 0; i < projectArray.Count(); i++)
+            {
+                var employee = employees.FirstOrDefault(x => x.SeveraId == projectArray[i].ExternalOwnerId);
+                if (employee == null)
+                {
+                    _logger.LogError("No employeeId found for the severa user with ID: {absence.ExternalId}", projectArray[i].ExternalId);
+                    continue;
+                }
+                projectArray[i].OwnerId = employee.Id;
+            }
+
+
+            var updateList = projectArray.Where(a => dbExternalIds.Contains(a.ExternalId)).ToList();
+            var insertList = projectArray.Where(a => !dbExternalIds.Contains(a.ExternalId)).ToList();
+
+            _logger.LogInformation($"Done pulling data from Severa, starting insert to db");
+            await _projectRepository.InsertProjects(insertList);
+            _logger.LogInformation($"Done insert to db, starting update existing items");
+            await _projectRepository.UpdateProjects(updateList);
+
+            _logger.LogInformation($"Done synchronizing Projects");
+
         }
 
         public async Task SynchronizeUnmappedSeveraIds()

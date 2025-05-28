@@ -14,5 +14,6 @@ namespace Domain.Interfaces.Services
         public Task SynchronizeAbsence();
 
         Task SynchronizeEmployeesAsync();
+        public Task SynchronizeProjects();
     }
 }

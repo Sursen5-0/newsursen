@@ -7,7 +7,7 @@ namespace Infrastructure.Persistance.Mappers
 {
     internal static class JsonToDtoEmployeeMapper
     {
-        public static EmployeeDTO ToDto(this EntraEmployeeModel model)
+        public static EmployeeDTO ToDto(this EntraEntityModel model)
         {
             if (model == null) throw new ArgumentNullException(nameof(model));
 
@@ -18,24 +18,16 @@ namespace Infrastructure.Persistance.Mappers
                 LastName = model.LastName ?? string.Empty,
                 Email = model.Email ?? string.Empty,
 
-                HireDate = model.HireDate.HasValue
-                                         ? DateOnly.FromDateTime(model.HireDate.Value)
-                                         : DateOnly.MinValue,
-
                 LeaveDate = model.LeaveDate.HasValue
-                                         ? DateOnly.FromDateTime(model.LeaveDate.Value)
-                                         : DateOnly.MinValue,
+                            ? DateOnly.FromDateTime(model.LeaveDate.Value)
+                            : (DateOnly?)null,
 
-                WorkPhoneNumber = model.BusinessPhones?.FirstOrDefault() ?? string.Empty,
+                WorkPhoneNumber = model.BusinessPhones?.FirstOrDefault(), 
+                PersonalPhoneNumber = model.PersonalPhoneNumber,
 
-                PersonalPhoneNumber = model.PersonalPhoneNumber ?? string.Empty,
-
-                Birthdate = DateOnly.MinValue,
                 BusinessUnitId = Guid.Empty,
-                HubSpotId = string.Empty,
                 SeveraId = null,
-                ManagerId = null,
-                FlowCaseId = string.Empty
+                FlowCaseId = null
             };
         }
     }

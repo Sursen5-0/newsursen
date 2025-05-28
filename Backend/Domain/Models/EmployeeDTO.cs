@@ -27,9 +27,7 @@ namespace Domain.Models
 
         public string? PersonalPhoneNumber { get; set; }
 
-        public string? HubSpotId { get; set; }
         public Guid? SeveraId { get; set; }
-        public Guid? ManagerId { get; set; }
 
         public Guid EntraId { get; set; }
 

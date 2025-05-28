@@ -4,7 +4,7 @@ using Infrastructure.Persistance.Models;
 
 namespace Infrastructure.Persistance.Mappers
 {
-    public static class EmployeeMapper
+    public static class EntraEmployeeMapper
     {
         public static Employee ToEntity(this EmployeeDTO dto)
         {
@@ -19,14 +19,8 @@ namespace Infrastructure.Persistance.Mappers
                 Email = dto.Email,
                 HireDate = dto.HireDate,
                 LeaveDate = dto.LeaveDate,
-                Birthdate = dto.Birthdate,
-                BusinessUnitId = dto.BusinessUnitId,
                 WorkPhoneNumber = dto.WorkPhoneNumber,
                 PersonalPhoneNumber = dto.PersonalPhoneNumber,
-                HubSpotId = dto.HubSpotId,
-                SeveraId = dto.SeveraId,
-                ManagerId = dto.ManagerId,
-                FlowCaseId = dto.FlowCaseId,
             };
         }
 
@@ -41,16 +35,9 @@ namespace Infrastructure.Persistance.Mappers
                 FirstName = entity.FirstName,
                 LastName = entity.LastName,
                 Email = entity.Email,
-                HireDate = entity.HireDate,
                 LeaveDate = entity.LeaveDate,
-                Birthdate = entity.Birthdate,
-                BusinessUnitId = entity.BusinessUnitId,
                 WorkPhoneNumber = entity.WorkPhoneNumber,
                 PersonalPhoneNumber = entity.PersonalPhoneNumber,
-                HubSpotId = entity.HubSpotId,
-                SeveraId = entity.SeveraId,
-                ManagerId = entity.ManagerId,
-                FlowCaseId = entity.FlowCaseId
             };
         }
     }

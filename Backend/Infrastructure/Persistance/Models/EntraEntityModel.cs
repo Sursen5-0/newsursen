@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Infrastructure.Persistance.Models
 {
-    internal class EntraEmployeeModel
+    internal class EntraEntityModel
     {
         [JsonPropertyName("id")]
         public string Id { get; set; } = string.Empty;

@@ -116,6 +116,10 @@ namespace Infrastructure.Persistance.Repositories
         {
             if (dtos == null) throw new ArgumentNullException(nameof(dtos));
 
+            if (!dtos.Any())
+                throw new ArgumentException("The employee list must contain at least one item.", nameof(dtos));
+
+
             var existingIds = await _db.Employees
                 .AsNoTracking()
                 .Select(e => e.EntraId)

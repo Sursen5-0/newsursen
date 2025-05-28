@@ -82,6 +82,10 @@ namespace Infrastructure.Severa
         }
         public async Task<SeveraEmployeeModel?> GetUserByEmail(string email)
         {
+            if (email == null)
+            {
+                return null;
+            }
             var list = new List<SeveraEmployeeModel>();
             var response = await GetEntity<List<SeveraEmployeeModel>>($"users?email={email}");
             if (!response.IsSuccess && response.StatusCode == HttpStatusCode.NotFound)
@@ -153,7 +157,7 @@ namespace Infrastructure.Severa
             var response = new SeveraReturnModel<IEnumerable<SeveraPhaseModel>>();
             do
             {
-                _logger.LogInformation($"Getting batch {i+1} out of {rounds+1}");
+                _logger.LogInformation($"Getting batch {i + 1} out of {rounds + 1}");
                 var calledItems = string.Join('&', projectIds.Skip(skipAmount).Take(takeAmount).Select(x => "projectGuids=" + x));
                 response = await GetEntities<SeveraPhaseModel>($"phases?{calledItems}");
                 if (!response.IsSuccess)

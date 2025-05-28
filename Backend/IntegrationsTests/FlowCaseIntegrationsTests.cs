@@ -2,6 +2,7 @@
 using Infrastructure.FlowCase;
 using Infrastructure.Secrets;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -15,6 +16,7 @@ public class FlowCaseIntegrationsTests
 {
     private readonly FlowCaseClient _client;
     private readonly DopplerClient _secretClient;
+    private readonly Logger<FlowCaseClient> _logger = new Logger<FlowCaseClient>(new LoggerFactory());
 
     public FlowCaseIntegrationsTests()
     {
@@ -31,7 +33,7 @@ public class FlowCaseIntegrationsTests
             BaseAddress = new Uri("https://twoday.flowcase.com")
         };
 
-        _client = new FlowCaseClient(_secretClient, flowCaseHttpClient);
+        _client = new FlowCaseClient(_secretClient, flowCaseHttpClient, _logger);
     }
 
     [Fact]

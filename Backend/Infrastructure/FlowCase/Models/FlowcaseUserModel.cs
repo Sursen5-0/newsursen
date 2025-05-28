@@ -14,5 +14,8 @@ namespace Infrastructure.FlowCase.Models
 
         [JsonPropertyName("default_cv_id")]
         public string DefaultCvId { get; set; }
+
+        [JsonPropertyName("office_name")]
+        public string? OfficeName { get; set; }
     }
 }

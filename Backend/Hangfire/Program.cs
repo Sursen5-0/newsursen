@@ -9,12 +9,14 @@ using Infrastructure.Persistance.Repositories;
 using Infrastructure.Secrets;
 using Infrastructure.Severa;
 using Infrastructure.Entra;
+using Infrastructure.FlowCase;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Serilog.Events;
 using System.Net.Http.Headers;
 using Infrastructure.Common;
+using HangFire.Jobs;
 
 var token = Environment.GetEnvironmentVariable("DOPPLER_KEY");
 var environment = Environment.GetEnvironmentVariable("ENVIRONMENT");
@@ -53,6 +55,9 @@ builder.Services.AddScoped<TestJob>();
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 builder.Services.AddScoped<SeveraJobs>();
+builder.Services.AddScoped<FlowCaseJob>();
+builder.Services.AddScoped<ISkillService, SkillService>();
+builder.Services.AddScoped<ISkillRepository, SkillRepository>();
 builder.Services.AddDbContext<SursenContext>((services, options) =>
 {
     var secretClient = services.GetRequiredService<ISecretClient>();
@@ -87,6 +92,18 @@ builder.Services.AddHttpClient<IEntraClient, EntraClient>()
         return new RetryHandler(new HttpClientHandler(), logger);
     });
 
+
+builder.Services.AddHttpClient<IFlowCaseClient, FlowCaseClient>(client =>
+{
+    client.BaseAddress = new Uri("https://twoday.flowcase.com");
+})
+    .ConfigurePrimaryHttpMessageHandler(provider =>
+    {
+        var logger = provider.GetRequiredService<ILogger<RetryHandler>>();
+        return new RetryHandler(new HttpClientHandler(), logger);
+    });
+
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -108,6 +125,9 @@ using (var scope = app.Services.CreateScope())
     "SynchronizeAbsence",
     () => scope.ServiceProvider.GetRequiredService<SeveraJobs>().SynchronizeAbsence(), "0 0 31 2 *");
 
+    jobManager.AddOrUpdate(
+        "SynchronizeSkills",
+        () => scope.ServiceProvider.GetRequiredService<FlowCaseJob>().SynchronizeSkills(), "0 0 31 2 *");
 }
 
 app.UseHangfireDashboard();

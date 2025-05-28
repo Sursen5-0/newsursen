@@ -1,21 +1,15 @@
 using Domain.Interfaces.ExternalClients;
 using Infrastructure.FlowCase;
+using Domain.Interfaces.Services;
 
 
 namespace HangFire.Jobs
 {
-
-
-    public class FlowCaseJob
+    public class FlowCaseJob(ISkillService skillService)
     {
-        private readonly FlowCaseClient _flowCaseClient;
-        private readonly ILogger<FlowCaseJob> _logger;
-
-        public FlowCaseJob(FlowCaseClient flowCaseClient, ILogger<FlowCaseJob> logger)
+        public async Task SynchronizeSkills()
         {
-            _flowCaseClient = flowCaseClient;
-            _logger = logger;
+            await skillService.SynchronizeSkillsFromFlowcaseAsync();
         }
-
     }
 }

@@ -65,7 +65,7 @@ namespace Infrastructure.Entra
             }
         }
 
-        public async Task<List<EmployeeDTO>> GetAllUsersAsync()
+        public async Task<List<EmployeeDTO>> GetAllEmployeesAsync()
         {
             var accessToken = await GetTokenAsync();
             if (string.IsNullOrEmpty(accessToken))

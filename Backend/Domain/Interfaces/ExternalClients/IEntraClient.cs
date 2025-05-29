@@ -7,6 +7,6 @@ namespace Domain.Interfaces.ExternalClients
     {
         Task<string?> GetTokenAsync();
 
-        Task<List<EmployeeDTO>> GetAllUsersAsync();
+        Task<List<EmployeeDTO>> GetAllEmployeesAsync();
     }
 }

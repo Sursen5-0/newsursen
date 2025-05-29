@@ -137,14 +137,30 @@ namespace Application.Services
 
         public async Task SynchronizeEmployeesAsync()
         {
-            _logger.LogInformation("Start Entra employee sync");
+            var dtos = await _entraClient.GetAllEmployeesAsync();
 
-            var allUsers = await _entraClient.GetAllUsersAsync();
-            _logger.LogInformation("Total Entra users fetched: {TotalCount}", allUsers.Count);
+            foreach (var dto in dtos)
+            {
+                if (dto == null)
+                {
+                    _logger.LogWarning("Skipped null EmployeeDTO");
+                    continue;
+                }
 
-            await _employeeRepository.InsertOrUpdateEmployees(allUsers);
+                // <-- use EntraId here, not dto.Id
+                var existingDto = await _employeeRepository.GetByEntraIdAsync(dto.EntraId);
 
-            _logger.LogInformation("Finished Entra employee sync");
+                if (existingDto == null)
+                {
+                    await _employeeRepository.InsertEmployeeAsync(dto);
+                    _logger.LogInformation("Inserted employee {EntraId}", dto.EntraId);
+                }
+                else
+                {
+                    await _employeeRepository.UpdateEmployeeAsync(dto);
+                    _logger.LogInformation("Updated employee {EntraId}", dto.EntraId);
+                }
+            }
         }
     }
 }

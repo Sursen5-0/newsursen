@@ -28,7 +28,7 @@ namespace UnitTests.Services
 
         public EmployeeServiceTests()
         {
-            _sut = new EmployeeService(_severaClientMock.Object, _employeeRepoMock.Object, _projectRepoMock.Object, _loggerMock.Object);
+            _sut = new EmployeeService(_severaClientMock.Object, _entraClientMock.Object, _employeeRepoMock.Object, _projectRepoMock.Object, _loggerMock.Object);
 
         }
         [Fact]

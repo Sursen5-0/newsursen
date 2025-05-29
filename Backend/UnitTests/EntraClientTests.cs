@@ -50,16 +50,13 @@ namespace UnitTests
                 secretMock.Object,
                 new HttpClient(mockHandler.Object),
                 loggerMock.Object);
-                
-                
-
-
 
             // Act
-            var token = await client.GetTokenAsync();
+            var ex = await Assert.ThrowsAsync<Exception>(
+                () => client.GetTokenAsync());
 
             // Assert
-            Assert.Null(token);
+            Assert.Equal("secret error", ex.Message);
             secretMock.Verify(
                 s => s.GetSecretAsync("ENTRA_TENANT", null),
                 Times.Once);
@@ -100,11 +97,10 @@ namespace UnitTests
                 new HttpClient(mockHandler.Object),
                 loggerMock.Object);
 
-            // Act
-            //var json = await client.GetUsersJsonAsync();
-
-            // Assert
-            //Assert.Null(json);
+            // Act & Assert
+            var ex = await Assert.ThrowsAsync<Exception>(
+                () => client.GetAllEmployeesAsync());
+            Assert.Equal("secret error", ex.Message);
         }
     }
 }

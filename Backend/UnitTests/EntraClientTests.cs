@@ -73,8 +73,6 @@ namespace UnitTests
                     It.IsAny<CancellationToken?>()))
                 .ThrowsAsync(new Exception("secret error"));
 
-
-
             var expectedToken = "mocked-access-token";
             var tokenModel = new TokenReturnModel { AccessToken = expectedToken };
             var jsonContent = JsonSerializer.Serialize(tokenModel);
@@ -89,7 +87,6 @@ namespace UnitTests
                     ItExpr.IsAny<HttpRequestMessage>(),
                     ItExpr.IsAny<CancellationToken>())
                 .ReturnsAsync(responseMessage);
-
 
             var loggerMock = new Mock<ILogger<RetryHandler>>();
             var client = new EntraClient(

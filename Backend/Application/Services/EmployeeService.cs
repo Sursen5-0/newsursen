@@ -52,8 +52,6 @@ namespace Application.Services
                 }
             }
 
-
-
             insertList = insertList.Where(x => x.EmployeeId.HasValue).ToList();
             _logger.LogInformation("Updating {updateamount}", updateList.Count);
             await _employeeRepository.UpdateAbsences(updateList);
@@ -147,7 +145,6 @@ namespace Application.Services
                     continue;
                 }
 
-                // <-- use EntraId here, not dto.Id
                 var existingDto = await _employeeRepository.GetByEntraIdAsync(dto.EntraId);
 
                 if (existingDto == null)

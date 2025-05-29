@@ -1,13 +1,14 @@
 ﻿using Domain.Interfaces.Repositories;
 using Domain.Models;
-using Microsoft.EntityFrameworkCore;
 using Infrastructure.Persistance.Mappers;
+using Infrastructure.Persistance.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using System.Diagnostics.Contracts;
 
 namespace Infrastructure.Persistance.Repositories
 {
@@ -108,6 +109,92 @@ namespace Infrastructure.Persistance.Repositories
         {
             _logger.LogInformation("Inserting {Count} new absences", absences.Count());
             _db.Absences.AddRange(absences.Select(x => x.ToEntity()));
+            await _db.SaveChangesAsync();
+        }
+
+
+        public async Task InsertOrUpdateEmployees(IEnumerable<EmployeeDTO> dtos)
+        {
+            if (dtos == null) throw new ArgumentNullException(nameof(dtos));
+
+            if (!dtos.Any())
+                throw new ArgumentException("The employee list must contain at least one item.", nameof(dtos));
+
+
+            var existingIds = await _db.Employees
+                .AsNoTracking()
+                .Select(e => e.EntraId)
+                .ToListAsync();
+
+            foreach (var dto in dtos)
+            {
+                if (dto == null)
+                {
+                    _logger.LogWarning("Skipped null EmployeeDTO");
+                    continue;
+                }
+
+                var entity = dto.ToEntity();
+                if (existingIds.Contains(dto.EntraId))
+                {
+                    
+                    var tracked = await _db.Employees
+                        .FirstAsync(e => e.EntraId == dto.EntraId);
+
+                    _db.Entry(tracked).CurrentValues.SetValues(entity);
+                    _logger.LogInformation("Updated employee with EntraId {EntraId}", dto.EntraId);
+                }
+                else
+                {
+                    await _db.Employees.AddAsync(entity);
+                    _logger.LogInformation("Inserted new employee with EntraId {EntraId}", dto.EntraId);
+                }
+            }
+
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task<EmployeeDTO> GetByEntraIdAsync(Guid entraId)
+        {
+            var entity = await _db.Employees
+                .FirstOrDefaultAsync(e => e.EntraId == entraId);
+            return entity?.ToDto();
+        }
+
+        public async Task InsertEmployeeAsync(EmployeeDTO employeeDto)
+        {
+            if (employeeDto == null) throw new ArgumentNullException(nameof(employeeDto));
+
+            var entity = employeeDto.ToEntity();
+
+            _db.Employees.Add(entity);
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task UpdateEmployeeAsync(EmployeeDTO employeeDto)
+        {
+            if (employeeDto == null) throw new ArgumentNullException(nameof(employeeDto));
+
+            _logger.LogInformation("Updating employee with EntraId {EntraId}", employeeDto.EntraId);
+
+            var existing = await _db.Employees.FirstOrDefaultAsync(e => e.EntraId == employeeDto.EntraId);
+            if (existing == null)
+            {
+                _logger.LogError("Employee to update not found. EntraId: {EntraId}", employeeDto.EntraId);
+                throw new InvalidOperationException(
+                    $"Employee with EntraId '{employeeDto.EntraId}' not found.");
+            }
+            existing.FirstName = employeeDto.FirstName;
+            existing.LastName = employeeDto.LastName;
+            existing.Email = employeeDto.Email;
+            existing.HireDate = employeeDto.HireDate;
+            existing.LeaveDate = employeeDto.LeaveDate;
+            existing.WorkPhoneNumber = employeeDto.WorkPhoneNumber;
+            existing.PersonalPhoneNumber = employeeDto.PersonalPhoneNumber;
+            existing.FlowCaseId = employeeDto.FlowCaseId;
+
+            existing.UpdatedAt = DateTime.UtcNow;
+
             await _db.SaveChangesAsync();
         }
     }

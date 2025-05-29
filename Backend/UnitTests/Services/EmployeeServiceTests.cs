@@ -23,11 +23,12 @@ namespace UnitTests.Services
         private readonly Mock<ISeveraClient> _severaClientMock = new Mock<ISeveraClient>();
         private readonly Mock<IProjectRepository> _projectRepoMock = new Mock<IProjectRepository>();
         private readonly Mock<ILogger<EmployeeService>> _loggerMock = new Mock<ILogger<EmployeeService>>();
+        private readonly Mock<IEntraClient> _entraClientMock = new Mock<IEntraClient>();
         private EmployeeService _sut;
 
         public EmployeeServiceTests()
         {
-            _sut = new EmployeeService(_severaClientMock.Object, _employeeRepoMock.Object, _projectRepoMock.Object, _loggerMock.Object);
+            _sut = new EmployeeService(_severaClientMock.Object, _entraClientMock.Object, _employeeRepoMock.Object, _projectRepoMock.Object, _loggerMock.Object);
 
         }
         [Fact]

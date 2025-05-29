@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Application.Services
 {
-    public class EmployeeService(ISeveraClient _severaClient, IEmployeeRepository _employeeRepository, IProjectRepository _projectRepository, ILogger<EmployeeService> _logger) : IEmployeeService
+    public class EmployeeService(ISeveraClient _severaClient, IEntraClient _entraClient, IEmployeeRepository _employeeRepository, IProjectRepository _projectRepository, ILogger<EmployeeService> _logger) : IEmployeeService
     {
         public async Task SynchronizeAbsence()
         {
@@ -51,8 +51,6 @@ namespace Application.Services
                     insertList.Add(item);
                 }
             }
-
-
 
             insertList = insertList.Where(x => x.EmployeeId.HasValue).ToList();
             _logger.LogInformation("Updating {updateamount}", updateList.Count);
@@ -133,6 +131,33 @@ namespace Application.Services
                 severaEmployees.Add(data);
             }
             await _employeeRepository.UpdateSeveraIds(severaEmployees);
+        }
+
+        public async Task SynchronizeEmployeesAsync()
+        {
+            var dtos = await _entraClient.GetAllEmployeesAsync();
+
+            foreach (var dto in dtos)
+            {
+                if (dto == null)
+                {
+                    _logger.LogWarning("Skipped null EmployeeDTO");
+                    continue;
+                }
+
+                var existingDto = await _employeeRepository.GetByEntraIdAsync(dto.EntraId);
+
+                if (existingDto == null)
+                {
+                    await _employeeRepository.InsertEmployeeAsync(dto);
+                    _logger.LogInformation("Inserted employee {EntraId}", dto.EntraId);
+                }
+                else
+                {
+                    await _employeeRepository.UpdateEmployeeAsync(dto);
+                    _logger.LogInformation("Updated employee {EntraId}", dto.EntraId);
+                }
+            }
         }
     }
 }

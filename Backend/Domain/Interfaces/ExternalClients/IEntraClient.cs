@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using Domain.Models;
+using System.Threading.Tasks;
 
 namespace Domain.Interfaces.ExternalClients
 {
@@ -6,6 +7,6 @@ namespace Domain.Interfaces.ExternalClients
     {
         Task<string?> GetTokenAsync();
 
-        Task<string?> GetUsersJsonAsync();
+        Task<List<EmployeeDTO>> GetAllEmployeesAsync();
     }
 }

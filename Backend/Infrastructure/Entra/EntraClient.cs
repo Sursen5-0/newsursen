@@ -1,9 +1,13 @@
 ﻿using Domain.Interfaces.ExternalClients;
+using Domain.Models;
 using Infrastructure.Common;
 using Infrastructure.Entra.Models;
+using Infrastructure.Persistance.Mappers;
+using Infrastructure.Persistance.Models;
 using Microsoft.Extensions.Logging;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -11,7 +15,7 @@ namespace Infrastructure.Entra
 {
     public class EntraClient(
         ISecretClient SecretClient,
-        HttpClient HttpClient,
+        HttpClient _httpClient,
         ILogger<RetryHandler> _logger
     ) : IEntraClient
     {
@@ -35,8 +39,7 @@ namespace Infrastructure.Entra
                 {
                     Content = new FormUrlEncodedContent(payload)
                 };
-                var res = await HttpClient.SendAsync(req);
-
+                var res = await _httpClient.SendAsync(req);
                 if (!res.IsSuccessStatusCode)
                 {
                     var err = await res.Content.ReadAsStringAsync();
@@ -55,62 +58,54 @@ namespace Infrastructure.Entra
                 _token = tokenResponse.AccessToken;
                 return _token;
             }
-            catch (HttpRequestException ex)
-            {
-                _logger.LogError(ex, "HTTP error fetching Entra token");
-            }
-            catch (JsonException ex)
-            {
-                _logger.LogError(ex, "JSON error parsing Entra token response");
-            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error in GetTokenAsync");
+                throw;
             }
-
-            return null;
         }
 
-        public async Task<string?> GetUsersJsonAsync()
+        public async Task<List<EmployeeDTO>> GetAllEmployeesAsync()
         {
-            try
+            var accessToken = await GetTokenAsync();
+            if (string.IsNullOrEmpty(accessToken))
             {
-                var accessToken = await GetTokenAsync();
-                if (string.IsNullOrEmpty(accessToken))
+                _logger.LogError("No access token available, aborting user retrieval");
+                throw new InvalidOperationException("Failed to acquire Entra access token.");
+            }
+
+            var dtos = new List<EmployeeDTO>();
+            var nextLink = URLExtensions.BuildUsersEndpoint();
+
+            while (!string.IsNullOrEmpty(nextLink))
+            {
+                var request = new HttpRequestMessage(HttpMethod.Get, nextLink);
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                request.Headers.Add("ConsistencyLevel", "eventual");
+
+                var response = await _httpClient.SendAsync(request);
+                if (!response.IsSuccessStatusCode)
                 {
-                    _logger.LogError("No access token available, aborting GetUsersJsonAsync");
-                    return null;
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    _logger.LogError("Graph /users request failed with {StatusCode}: {Error}", response.StatusCode, errorContent);
+                    throw new HttpRequestException($"Graph /users request failed with {response.StatusCode}: {errorContent}");
                 }
 
-                var usersUrl = URLExtensions.BuildUsersEndpoint();
-                var req = new HttpRequestMessage(HttpMethod.Get, usersUrl);
-                req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-                req.Headers.Add("ConsistencyLevel", "eventual");
-
-                var res = await HttpClient.SendAsync(req);
-                if (!res.IsSuccessStatusCode)
+                var page = await response.Content.ReadFromJsonAsync<EntraEntityPage<EntraEntityModel>>();
+                if (page?.Value != null)
                 {
-                    var err = await res.Content.ReadAsStringAsync();
-                    _logger.LogError("Graph /users request failed with {StatusCode}: {Error}", res.StatusCode, err);
-                    return null;
+                    foreach (var raw in page.Value)
+                    {
+                        dtos.Add(JsonToDtoEmployeeMapper.ToDto(raw));
+                    }
+
+                    _logger.LogInformation("Fetched and mapped {Count} users", page.Value.Count);
                 }
 
-                return await res.Content.ReadAsStringAsync();
-            }
-            catch (HttpRequestException ex)
-            {
-                _logger.LogError(ex, "HTTP error fetching Graph users");
-            }
-            catch (JsonException ex)
-            {
-                _logger.LogError(ex, "JSON error parsing Graph users response");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unexpected error in GetUsersJsonAsync");
+                nextLink = page?.NextLink;
             }
 
-            return null;
+            return dtos;
         }
     }
 }

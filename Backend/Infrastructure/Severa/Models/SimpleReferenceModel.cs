@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Infrastructure.Severa.Models
 {
-    public class SimpleUserModel
+    public class SimpleReferenceModel
     {
         [JsonPropertyName("guid")]
         public Guid Id { get; set; }

@@ -9,8 +9,11 @@ namespace Domain.Interfaces.Repositories
 {
     public interface IProjectRepository
     {
-        Task<IEnumerable<ProjectDTO>> GetProjects(bool includeActive = false);
+        Task<IEnumerable<ProjectDTO>> GetProjects(bool includeInactive = true);
         Task InsertProjects(IEnumerable<ProjectDTO> projects);
         Task UpdateProjects(IEnumerable<ProjectDTO> projects);
+        Task<IEnumerable<ProjectPhaseDTO>> GetPhases(bool includeInactive = true);
+        Task InsertPhases(IEnumerable<ProjectPhaseDTO> phases);
+        Task UpdatePhases(IEnumerable<ProjectPhaseDTO> phases);
     }
 }

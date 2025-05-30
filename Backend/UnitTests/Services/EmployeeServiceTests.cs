@@ -123,7 +123,7 @@ namespace UnitTests.Services
             };
 
             _projectRepoMock.Setup(x => x.GetProjects(It.IsAny<bool>())).ReturnsAsync(dbProjects);
-            _severaClientMock.Setup(x => x.GetProjects()).ReturnsAsync(severaProjects);
+            _severaClientMock.Setup(x => x.GetProjects(It.IsAny<int?>())).ReturnsAsync(severaProjects);
             _employeeRepoMock.Setup(x => x.GetEmployees(It.IsAny<bool>())).ReturnsAsync(employees);
 
             // Act
@@ -146,7 +146,7 @@ namespace UnitTests.Services
                 new ProjectDTO() { ExternalId = Guid.NewGuid(), ExternalOwnerId = Guid.NewGuid() , Name ="test"}
             };
             _projectRepoMock.Setup(x => x.GetProjects(It.IsAny<bool>())).ReturnsAsync(new List<ProjectDTO>());
-            _severaClientMock.Setup(x => x.GetProjects()).ReturnsAsync(severaProjects);
+            _severaClientMock.Setup(x => x.GetProjects(It.IsAny<int?>())).ReturnsAsync(severaProjects);
             _employeeRepoMock.Setup(x => x.GetEmployees(It.IsAny<bool>())).ReturnsAsync(new List<EmployeeDTO>());
 
             // Act
@@ -171,7 +171,7 @@ namespace UnitTests.Services
             };
 
             _projectRepoMock.Setup(x => x.GetProjects(It.IsAny<bool>())).ReturnsAsync(new List<ProjectDTO>());
-            _severaClientMock.Setup(x => x.GetProjects()).ReturnsAsync(severaProjects);
+            _severaClientMock.Setup(x => x.GetProjects(It.IsAny<int?>())).ReturnsAsync(severaProjects);
             _employeeRepoMock.Setup(x => x.GetEmployees(It.IsAny<bool>())).ReturnsAsync(employees);
             
             // Act
@@ -201,7 +201,7 @@ namespace UnitTests.Services
             };
 
             _projectRepoMock.Setup(x => x.GetProjects(It.IsAny<bool>())).ReturnsAsync(dbProjects);
-            _severaClientMock.Setup(x => x.GetProjects()).ReturnsAsync(severaProjects);
+            _severaClientMock.Setup(x => x.GetProjects(It.IsAny<int?>())).ReturnsAsync(severaProjects);
             _employeeRepoMock.Setup(x => x.GetEmployees(It.IsAny<bool>())).ReturnsAsync(employees);
 
             // Act

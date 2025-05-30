@@ -13,5 +13,6 @@ namespace Domain.Interfaces.Services
         public Task SynchronizeUnmappedSeveraIds();
         public Task SynchronizeAbsence();
         public Task SynchronizeProjects();
+        public Task SynchronizePhases();
     }
 }

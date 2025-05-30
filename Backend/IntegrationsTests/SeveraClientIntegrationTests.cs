@@ -99,20 +99,38 @@ namespace IntegrationsTests
         }
 
         [Fact]
-        public async Task SeveraClient_CallingGetToken_ReturnsToken()
+        public async Task SeveraClient_GetAbsence_ReturnsResponse()
         {
             // Act
-            var result = await _sut.GetToken();
+            var result = await _sut.GetAbsence(3);
 
             // Assert
             Assert.NotNull(result);
         }
 
         [Fact]
-        public async Task SeveraClient_CallingGetToken_ReturnsToken()
+        public async Task SeveraClient_GetProjects_ReturnsResponse()
         {
             // Act
-            var result = await _sut.GetToken();
+            var result = await _sut.GetProjects(3);
+
+            // Assert
+            Assert.NotNull(result);
+        }
+
+        [Fact]
+        public async Task SeveraClient_GetPhases_ReturnsResponse()
+        {
+            // Arrange
+            // Amgen ID's SeveraIds
+            var projectGuids = new List<Guid>
+            {
+                new Guid("96b5a7d5-593a-6398-0134-4c36271c8cb5"),
+                new Guid("ecd59f4f-141d-28fc-4061-511c3ffbac60")
+            };
+
+            // Act
+            var result = await _sut.GetPhases(projectGuids);
 
             // Assert
             Assert.NotNull(result);

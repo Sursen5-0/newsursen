@@ -11,5 +11,10 @@ namespace Domain.Models
         public Guid Id { get; set; }
         public string Email { get; set; } = null!;
         public Guid? SeveraId { get; set; }
+
+        public string FlowcaseId { get; set; } = null!;
+
+        public string CvId { get; set; } = null!;
+        public string SkillName { get; set; } = null!;
     }
 }

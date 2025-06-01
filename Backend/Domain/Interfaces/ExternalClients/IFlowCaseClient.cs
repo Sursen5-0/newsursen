@@ -9,5 +9,6 @@ namespace Domain.Interfaces.ExternalClients
     public interface IFlowCaseClient
     {
         public Task<List<SkillDTO>> GetSkillsFromFlowcaseAsync();
+        public  Task<List<SkillDTO>> GetSkillsFromCVAsync(string user_id, string cv_id);
     }
 }

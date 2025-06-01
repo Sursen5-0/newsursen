@@ -110,5 +110,45 @@ namespace Infrastructure.Persistance.Repositories
             _db.Absences.AddRange(absences.Select(x => x.ToEntity()));
             await _db.SaveChangesAsync();
         }
+
+        /*public async Task UpdateEmployeeSkills(IEnumerable<EmployeeSkillDTO> employeeSkills)
+        {
+            var employeeIdList = _db.Employees.Select(e => e.Id).ToList();
+            var skillList = _db.EmployeeSkills.Where(x => employeeSkills.Select(c => c.Id).Contains(x.Id)).ToDictionary(x => x.Id);
+            foreach (var skill in employeeSkills)
+            {
+                if (!employeeIdList.Contains(skill.EmployeeId))
+                {
+                    _logger.LogWarning($"EmployeeId {skill.EmployeeId} not found for skills, not inserting data.");
+                    continue;
+                }
+                if (skill.Id == default || !skillList.ContainsKey(skill.Id))
+                {
+                    await _db.EmployeeSkills.AddAsync(skill.ToEntity());
+                }
+                else
+                {
+                    var dbSkill = skillList[skill.Id];
+                    _db.Entry(dbSkill).CurrentValues.SetValues(skill.ToEntity());
+                }
+            }
+            await _db.SaveChangesAsync();
+        }*/
+
+        public async Task InsertEmployeeSkills(IEnumerable<EmployeeSkillDTO> employeeSkills)
+        {
+
+            var employeeIdList = _db.Employees.Select(e => e.Id).ToList();
+            foreach (var skill in employeeSkills)
+            {
+                if (!employeeIdList.Contains(skill.Id))
+                {
+                    _logger.LogWarning($"EmployeeId {skill.Id} not found for skills, not inserting data.");
+                    continue;
+                }
+                await _db.EmployeeSkills.AddAsync(EmployeeSkillMapper.ToEntity(skill));
+            }
+            await _db.SaveChangesAsync();
+        }
     }
 }

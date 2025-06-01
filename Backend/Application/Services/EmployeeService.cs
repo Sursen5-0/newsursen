@@ -100,32 +100,66 @@ namespace Application.Services
             await _employeeRepository.UpdateSeveraIds(severaEmployees);
         }
 
-/*        public async Task SynchronizeEmployeeSkillsFromFlowcaseAsync()
+        public async Task SynchronizeEmployeeSkillsFromFlowcaseAsync()
         {
 
             _logger.LogInformation("Synchronizing employee skills from Flowcase");
-            var employees = await _skillRepository.GetAllEmployeesAsync();
+            var employees = await _employeeRepository.GetEmployees();
             foreach (var employee in employees)
             {
-                var skills = await _flowcaseClient.GetSkillsFromCVAsync(employee.ExternalId, employee.CVId);
+                var skills = await _flowcaseClient.GetSkillsFromCVAsync(employee.FlowcaseId, employee.CvId);
                 if (skills == null || !skills.Any())
                 {
-                    _logger.LogWarning($"No skills found for employee {employee.Name}, skipping synchronization.");
+                    _logger.LogWarning($"No skills found for employee {employee.Id}, skipping synchronization.");
                     continue;
                 }
                 foreach (var skill in skills)
                 {
-                    if (!employee.Skills.Any(s => s.SkillName == skill.SkillName))
+                    if (!employee.SkillName.Any(s => s.SkillName == skill.SkillName))
                     {
-                        _logger.LogInformation($"Adding skill {skill.SkillName} to employee {employee.Name}");
-                        await _skillRepository.AddEmployeeSkillAsync(employee.Id, skill);
+                        _logger.LogInformation($"Adding skill {skill.SkillName} to employee {employee.Id}");
+                        await _employeeRepository.InsertEmployeeSkillAsync(employee.Id, skill);
                     }
                     else
                     {
-                        _logger.LogInformation($"Skill {skill.SkillName} already exists for employee {employee.Name}, skipping addition.");
+                        _logger.LogInformation($"Skill {skill.SkillName} already exists for employee {employee.Id}, skipping addition.");
                     }
                 }
             }
-        }*/
+        }
+
+        /*        public async Task MapEmployeeSkillsAsync()
+                {
+                    _logger.LogInformation("Mapping employee skills");
+                    var employees = await _employeeRepository.GetEmployees();
+                    var employeeSkills = new List<EmployeeSkillDTO>();
+                    foreach (var employee in employees)
+                    {
+                        var skills = await _flowcaseClient.GetSkillsFromCVAsync(employee.ExternalId, employee.CVId);
+                        if (skills == null || !skills.Any())
+                        {
+                            _logger.LogWarning($"No skills found for employee {employee.Name}, skipping mapping.");
+                            continue;
+                        }
+                        foreach (var skill in skills)
+                        {
+                            if (!employee.Skills.Any(s => s.SkillName == skill.SkillName))
+                            {
+                                _logger.LogInformation($"Adding skill {skill.SkillName} to employee {employee.Name}");
+                                employeeSkills.Add(new EmployeeSkillDTO
+                                {
+                                    EmployeeId = employee.Id,
+                                    SkillName = skill.SkillName,
+                                    Proficiency = skill.Proficiency
+                                });
+                            }
+                            else
+                            {
+                                _logger.LogInformation($"Skill {skill.SkillName} already exists for employee {employee.Name}, skipping addition.");
+                            }
+                        }
+                    }
+                    await _employeeRepository.
+                }*/
     }
 }

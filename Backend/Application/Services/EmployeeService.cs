@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Application.Services
 {
-    public class EmployeeService(ISeveraClient _severaClient, IEmployeeRepository _employeeRepository, IProjectRepository _projectRepository, ILogger<EmployeeService> _logger) : IEmployeeService
+    public class EmployeeService(ISeveraClient _severaClient, IEntraClient _entraClient, IEmployeeRepository _employeeRepository, IProjectRepository _projectRepository, ILogger<EmployeeService> _logger) : IEmployeeService
     {
         public async Task SynchronizeAbsence()
         {
@@ -51,8 +51,6 @@ namespace Application.Services
                     insertList.Add(item);
                 }
             }
-
-
 
             insertList = insertList.Where(x => x.EmployeeId.HasValue).ToList();
             _logger.LogInformation("Updating {updateamount}", updateList.Count);
@@ -133,6 +131,48 @@ namespace Application.Services
                 severaEmployees.Add(data);
             }
             await _employeeRepository.UpdateSeveraIds(severaEmployees);
+        }
+
+        public async Task SynchronizeEmployeesAsync()
+        {
+            var dtos = await _entraClient.GetAllEmployeesAsync() ?? new List<EmployeeDTO>();
+
+            var validDtos = new List<EmployeeDTO>();
+            foreach (var dto in dtos)
+            {
+                if (dto == null)
+                {
+                    _logger.LogWarning("Skipped null EmployeeDTO");
+                    continue;
+                }
+                validDtos.Add(dto);
+            }
+
+            if (!validDtos.Any())
+            {
+                _logger.LogInformation("No valid employees to synchronize.");
+                return;
+            }
+
+            var incomingIds = validDtos.Select(d => d.EntraId).ToList();
+            var existingDtos = await _employeeRepository.GetByEntraIdsAsync(incomingIds);
+            var existingIds = new HashSet<Guid>(existingDtos.Select(e => e.EntraId));
+
+            var insertList = validDtos.Where(d => !existingIds.Contains(d.EntraId)).ToList();
+            var updateList = validDtos.Where(d => existingIds.Contains(d.EntraId)).ToList();
+
+            if (insertList.Any())
+            {
+                await _employeeRepository.InsertEmployeesAsync(insertList);
+                foreach (var dto in insertList)
+                    _logger.LogInformation("Inserted employee {EntraId}", dto.EntraId);
+            }
+            if (updateList.Any())
+            {
+                await _employeeRepository.UpdateEmployeesAsync(updateList);
+                foreach (var dto in updateList)
+                    _logger.LogInformation("Updated employee {EntraId}", dto.EntraId);
+            }
         }
     }
 }

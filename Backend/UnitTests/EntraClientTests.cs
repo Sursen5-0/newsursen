@@ -50,16 +50,13 @@ namespace UnitTests
                 secretMock.Object,
                 new HttpClient(mockHandler.Object),
                 loggerMock.Object);
-                
-                
-
-
 
             // Act
-            var token = await client.GetTokenAsync();
+            var ex = await Assert.ThrowsAsync<Exception>(
+                () => client.GetTokenAsync());
 
             // Assert
-            Assert.Null(token);
+            Assert.Equal("secret error", ex.Message);
             secretMock.Verify(
                 s => s.GetSecretAsync("ENTRA_TENANT", null),
                 Times.Once);
@@ -76,8 +73,6 @@ namespace UnitTests
                     It.IsAny<CancellationToken?>()))
                 .ThrowsAsync(new Exception("secret error"));
 
-
-
             var expectedToken = "mocked-access-token";
             var tokenModel = new TokenReturnModel { AccessToken = expectedToken };
             var jsonContent = JsonSerializer.Serialize(tokenModel);
@@ -93,18 +88,16 @@ namespace UnitTests
                     ItExpr.IsAny<CancellationToken>())
                 .ReturnsAsync(responseMessage);
 
-
             var loggerMock = new Mock<ILogger<RetryHandler>>();
             var client = new EntraClient(
                 secretMock.Object,
                 new HttpClient(mockHandler.Object),
                 loggerMock.Object);
 
-            // Act
-            var json = await client.GetUsersJsonAsync();
-
-            // Assert
-            Assert.Null(json);
+            // Act & Assert
+            var ex = await Assert.ThrowsAsync<Exception>(
+                () => client.GetAllEmployeesAsync());
+            Assert.Equal("secret error", ex.Message);
         }
     }
 }

@@ -112,88 +112,54 @@ namespace Infrastructure.Persistance.Repositories
             await _db.SaveChangesAsync();
         }
 
+        public async Task<List<EmployeeDTO>> GetByEntraIdsAsync(IEnumerable<Guid> entraIds)
+        {
+            var entities = await _db.Employees
+                .Where(e => entraIds.Contains(e.EntraId))
+                .ToListAsync();
+            return entities.Select(e => e.ToDto()).ToList();
+        }
 
-        public async Task InsertOrUpdateEmployees(IEnumerable<EmployeeDTO> dtos)
+        public async Task InsertEmployeesAsync(IEnumerable<EmployeeDTO> dtos)
+        {
+            if (dtos == null) throw new ArgumentNullException(nameof(dtos));
+            var entities = dtos.Select(d => d.ToEntity()).ToList();
+            _db.Employees.AddRange(entities);
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task UpdateEmployeesAsync(IEnumerable<EmployeeDTO> dtos)
         {
             if (dtos == null) throw new ArgumentNullException(nameof(dtos));
 
-            if (!dtos.Any())
-                throw new ArgumentException("The employee list must contain at least one item.", nameof(dtos));
+            var entraIds = dtos.Select(d => d.EntraId).ToHashSet();
+            var existingEntities = await _db.Employees
+                .Where(e => entraIds.Contains(e.EntraId))
+                .ToDictionaryAsync(e => e.EntraId);
 
+            var updatedEntitiesDict = dtos
+                .Select(d => d.ToEntity())
+                .ToDictionary(e => e.EntraId);
 
-            var existingIds = await _db.Employees
-                .AsNoTracking()
-                .Select(e => e.EntraId)
-                .ToListAsync();
-
-            foreach (var dto in dtos)
+            var now = DateTime.UtcNow;
+            foreach (var kvp in existingEntities)
             {
-                if (dto == null)
-                {
-                    _logger.LogWarning("Skipped null EmployeeDTO");
-                    continue;
-                }
+                var entraId = kvp.Key;
+                var existingEntity = kvp.Value;
 
-                var entity = dto.ToEntity();
-                if (existingIds.Contains(dto.EntraId))
+                if (updatedEntitiesDict.TryGetValue(entraId, out var updatedEntity))
                 {
-                    
-                    var tracked = await _db.Employees
-                        .FirstAsync(e => e.EntraId == dto.EntraId);
+                    updatedEntity.Id = existingEntity.Id;
+                    updatedEntity.CreatedAt = existingEntity.CreatedAt;
+                    updatedEntity.UpdatedAt = now;
 
-                    _db.Entry(tracked).CurrentValues.SetValues(entity);
-                    _logger.LogInformation("Updated employee with EntraId {EntraId}", dto.EntraId);
+                    _db.Entry(existingEntity).CurrentValues.SetValues(updatedEntity);
                 }
                 else
                 {
-                    await _db.Employees.AddAsync(entity);
-                    _logger.LogInformation("Inserted new employee with EntraId {EntraId}", dto.EntraId);
+                    _logger.LogError("Employee intended for update not found in input list. EntraId: {EntraId}", entraId);
                 }
             }
-
-            await _db.SaveChangesAsync();
-        }
-
-        public async Task<EmployeeDTO> GetByEntraIdAsync(Guid entraId)
-        {
-            var entity = await _db.Employees
-                .FirstOrDefaultAsync(e => e.EntraId == entraId);
-            return entity?.ToDto();
-        }
-
-        public async Task InsertEmployeeAsync(EmployeeDTO employeeDto)
-        {
-            if (employeeDto == null) throw new ArgumentNullException(nameof(employeeDto));
-
-            var entity = employeeDto.ToEntity();
-
-            _db.Employees.Add(entity);
-            await _db.SaveChangesAsync();
-        }
-
-        public async Task UpdateEmployeeAsync(EmployeeDTO employeeDto)
-        {
-            if (employeeDto == null) throw new ArgumentNullException(nameof(employeeDto));
-
-            _logger.LogInformation("Updating employee with EntraId {EntraId}", employeeDto.EntraId);
-
-            var existing = await _db.Employees.FirstOrDefaultAsync(e => e.EntraId == employeeDto.EntraId);
-            if (existing == null)
-            {
-                _logger.LogError("Employee to update not found. EntraId: {EntraId}", employeeDto.EntraId);
-                throw new InvalidOperationException(
-                    $"Employee with EntraId '{employeeDto.EntraId}' not found.");
-            }
-            existing.FirstName = employeeDto.FirstName;
-            existing.LastName = employeeDto.LastName;
-            existing.Email = employeeDto.Email;
-            existing.HireDate = employeeDto.HireDate;
-            existing.LeaveDate = employeeDto.LeaveDate;
-            existing.WorkPhoneNumber = employeeDto.WorkPhoneNumber;
-            existing.PersonalPhoneNumber = employeeDto.PersonalPhoneNumber;
-            existing.FlowCaseId = employeeDto.FlowCaseId;
-
-            existing.UpdatedAt = DateTime.UtcNow;
 
             await _db.SaveChangesAsync();
         }

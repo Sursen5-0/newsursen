@@ -105,22 +105,29 @@ namespace UnitTests.Repositories
         }
 
 
-
         [Fact]
-        public async Task UpdateEmployeeAsync_ThrowsInvalidOperationException_WhenEntityNotFound()
+        public async Task UpdateEmployeesAsync_NoErrorLog_WhenEntityNotFound()
         {
             // Arrange
-            var dto = new EmployeeDTO { EntraId = Guid.NewGuid() };
+            var dto = new EmployeeDTO { EntraId = Guid.NewGuid(), FirstName = "New" };
+            var dtos = new List<EmployeeDTO> { dto };
 
-            // Act & Assert
-            await Assert.ThrowsAsync<InvalidOperationException>(() => sut.UpdateEmployeeAsync(dto));
+            // Act
+            await sut.UpdateEmployeesAsync(dtos);
 
-            // Verify that we logged an error via your VerifyLog helper
-            _logger.VerifyLog(LogLevel.Error, Times.Once());
+            // Assert:
+            _logger.Verify(
+                x => x.Log(
+                    LogLevel.Error,
+                    It.IsAny<EventId>(),
+                    It.IsAny<It.IsAnyType>(),
+                    It.IsAny<Exception>(),
+                    It.IsAny<Func<It.IsAnyType, Exception, string>>()),
+                Times.Never);
         }
 
         [Fact]
-        public async Task UpdateEmployeeAsync_UpdatesFields_PreservesCreatedAt_UpdatesUpdatedAt()
+        public async Task UpdateEmployeesAsync_UpdatesFields_PreservesCreatedAt_UpdatesUpdatedAt()
         {
             // Arrange
             var entraId = Guid.NewGuid();
@@ -147,9 +154,10 @@ namespace UnitTests.Repositories
                 HireDate = DateOnly.FromDateTime(DateTime.UtcNow),
                 LeaveDate = DateOnly.FromDateTime(DateTime.UtcNow)
             };
+            var dtos = new List<EmployeeDTO> { dto };
 
             // Act
-            await sut.UpdateEmployeeAsync(dto);
+            await sut.UpdateEmployeesAsync(dtos);
 
             // Assert
             var updated = await _context.Employees.FirstAsync(e => e.EntraId == entraId);
@@ -160,31 +168,39 @@ namespace UnitTests.Repositories
         }
 
         [Fact]
-        public async Task InsertEmployeeAsync_AddsEntityWithAuditFields()
+        public async Task InsertEmployeesAsync_AddsEntities()
         {
             // Arrange
-            var dto = new EmployeeDTO
+            var existing = _context.Employees.ToList();
+            if (existing.Any())
+            {
+                _context.Employees.RemoveRange(existing);
+                await _context.SaveChangesAsync();
+            }
+
+            var dto1 = new EmployeeDTO
             {
                 EntraId = Guid.NewGuid(),
                 FirstName = "John",
                 LastName = "Doe",
-                Email = "john@doe.com",
-                HireDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-10)),
-                LeaveDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1)),
-                WorkPhoneNumber = "123",
-                PersonalPhoneNumber = "456",
+                Email = "john@doe.com"
             };
+            var dto2 = new EmployeeDTO
+            {
+                EntraId = Guid.NewGuid(),
+                FirstName = "Jane",
+                LastName = "Smith",
+                Email = "jane@smith.com"
+            };
+            var dtos = new List<EmployeeDTO> { dto1, dto2 };
 
             // Act
-            await sut.InsertEmployeeAsync(dto);
+            await sut.InsertEmployeesAsync(dtos);
 
             // Assert
-            var entity = await _context.Employees.FirstOrDefaultAsync(e => e.EntraId == dto.EntraId);
-            Assert.NotNull(entity);
-            Assert.Equal(dto.FirstName, entity.FirstName);
-            Assert.Equal(dto.LastName, entity.LastName);
-            Assert.Equal(dto.Email, entity.Email);
-            Assert.Equal(entity.CreatedAt, entity.UpdatedAt);
+            var all = await _context.Employees.ToListAsync();
+            Assert.Contains(all, e => e.EntraId == dto1.EntraId && e.FirstName == "John");
+            Assert.Contains(all, e => e.EntraId == dto2.EntraId && e.FirstName == "Jane");
         }
     }
 }

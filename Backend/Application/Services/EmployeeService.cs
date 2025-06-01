@@ -135,8 +135,9 @@ namespace Application.Services
 
         public async Task SynchronizeEmployeesAsync()
         {
-            var dtos = await _entraClient.GetAllEmployeesAsync();
+            var dtos = await _entraClient.GetAllEmployeesAsync() ?? new List<EmployeeDTO>();
 
+            var validDtos = new List<EmployeeDTO>();
             foreach (var dto in dtos)
             {
                 if (dto == null)
@@ -144,19 +145,33 @@ namespace Application.Services
                     _logger.LogWarning("Skipped null EmployeeDTO");
                     continue;
                 }
+                validDtos.Add(dto);
+            }
 
-                var existingDto = await _employeeRepository.GetByEntraIdAsync(dto.EntraId);
+            if (!validDtos.Any())
+            {
+                _logger.LogInformation("No valid employees to synchronize.");
+                return;
+            }
 
-                if (existingDto == null)
-                {
-                    await _employeeRepository.InsertEmployeeAsync(dto);
+            var incomingIds = validDtos.Select(d => d.EntraId).ToList();
+            var existingDtos = await _employeeRepository.GetByEntraIdsAsync(incomingIds);
+            var existingIds = new HashSet<Guid>(existingDtos.Select(e => e.EntraId));
+
+            var insertList = validDtos.Where(d => !existingIds.Contains(d.EntraId)).ToList();
+            var updateList = validDtos.Where(d => existingIds.Contains(d.EntraId)).ToList();
+
+            if (insertList.Any())
+            {
+                await _employeeRepository.InsertEmployeesAsync(insertList);
+                foreach (var dto in insertList)
                     _logger.LogInformation("Inserted employee {EntraId}", dto.EntraId);
-                }
-                else
-                {
-                    await _employeeRepository.UpdateEmployeeAsync(dto);
+            }
+            if (updateList.Any())
+            {
+                await _employeeRepository.UpdateEmployeesAsync(updateList);
+                foreach (var dto in updateList)
                     _logger.LogInformation("Updated employee {EntraId}", dto.EntraId);
-                }
             }
         }
     }

@@ -41,7 +41,7 @@ namespace Infrastructure.Persistance.Repositories
             await _db.SaveChangesAsync();
         }
 
-        public async Task<IEnumerable<EmployeeDTO>> GetEmployees(bool includeDisabled = false)
+        public async Task<IEnumerable<EmployeeDTO>> GetEmployees(bool includeDisabled = true)
         {
             var employees = _db.Employees.Include(x => x.EmployeeContracts).AsQueryable();
             var date = DateOnly.FromDateTime(DateTime.Now);
@@ -53,7 +53,7 @@ namespace Infrastructure.Persistance.Repositories
         }
 
 
-        public async Task<IEnumerable<EmployeeDTO>> GetEmployeeWithoutSeveraIds(bool includeDisabled = false)
+        public async Task<IEnumerable<EmployeeDTO>> GetEmployeeWithoutSeveraIds(bool includeDisabled = true)
         {
             var employees = _db.Employees.Include(x => x.EmployeeContracts).Where(x => x.SeveraId == null).AsQueryable();
             var date = DateOnly.FromDateTime(DateTime.Now);
@@ -70,7 +70,13 @@ namespace Infrastructure.Persistance.Repositories
             var employees = _db.Employees.Where(x => employeeEmails.Contains(x.Email));
             foreach (var employee in employees)
             {
-                employee.SeveraId = employeeDTOs.First(x => x.Email == employee.Email).Id;
+                var id = employeeDTOs.FirstOrDefault(x => x.Email == employee.Email)?.Id;
+                if(id == null)
+                {
+                    _logger.LogWarning("Unable to find email for user with email: {Email}", employee.Email);
+                    continue;
+                }
+                employee.SeveraId = id;
             }
             await _db.SaveChangesAsync();
         }

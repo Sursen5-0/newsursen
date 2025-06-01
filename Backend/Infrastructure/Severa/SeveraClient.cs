@@ -82,6 +82,11 @@ namespace Infrastructure.Severa
         }
         public async Task<SeveraEmployeeModel?> GetUserByEmail(string email)
         {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                _logger.LogError($"Provided email for finding a user in severa is null or empty string");
+                return null;
+            }
             var list = new List<SeveraEmployeeModel>();
             var response = await GetEntity<List<SeveraEmployeeModel>>($"users?email={email}");
             if (!response.IsSuccess && response.StatusCode == HttpStatusCode.NotFound)
@@ -105,9 +110,9 @@ namespace Infrastructure.Severa
             }
             return response.Data.FirstOrDefault();
         }
-        public async Task<IEnumerable<AbsenceDTO>> GetAbsence()
+        public async Task<IEnumerable<AbsenceDTO>> GetAbsence(int? maxpages = null)
         {
-            var response = await GetEntities<SeveraActivityModel>($"activities?&activityCategories=Absences");
+            var response = await GetEntities<SeveraActivityModel>($"activities?&activityCategories=Absences", maxpages);
 
             if (!response.IsSuccess)
             {
@@ -123,9 +128,9 @@ namespace Infrastructure.Severa
             return response.Data.Select(x => x.ToDto());
 
         }
-        public async Task<IEnumerable<ProjectDTO>> GetProjects()
+        public async Task<IEnumerable<ProjectDTO>> GetProjects(int? maxpages = null)
         {
-            var response = await GetEntities<SeveraProjectModel>($"projects?");
+            var response = await GetEntities<SeveraProjectModel>($"projects?", maxpages);
 
             if (!response.IsSuccess)
             {
@@ -141,7 +146,7 @@ namespace Infrastructure.Severa
 
         }
 
-        public async Task<IEnumerable<ProjectPhaseDTO>> GetPhases(IEnumerable<Guid> projectIds)
+        public async Task<IEnumerable<ProjectPhaseDTO>> GetPhases(IEnumerable<Guid> projectIds, int? maxpages = null)
         {
             var increment = 20;
             var skipAmount = 0;
@@ -153,9 +158,9 @@ namespace Infrastructure.Severa
             var response = new SeveraReturnModel<IEnumerable<SeveraPhaseModel>>();
             do
             {
-                _logger.LogInformation($"Getting batch {i+1} out of {rounds+1}");
+                _logger.LogInformation($"Getting batch {i + 1} out of {rounds + 1}");
                 var calledItems = string.Join('&', projectIds.Skip(skipAmount).Take(takeAmount).Select(x => "projectGuids=" + x));
-                response = await GetEntities<SeveraPhaseModel>($"phases?{calledItems}");
+                response = await GetEntities<SeveraPhaseModel>($"phases?{calledItems}", maxpages);
                 if (!response.IsSuccess)
                 {
                     _logger.LogError($"Severa returned {response.Message} in phases");
@@ -179,15 +184,21 @@ namespace Infrastructure.Severa
         {
             return await MakeRequest<T>(path);
         }
-        private async Task<SeveraReturnModel<IEnumerable<T>>> GetEntities<T>(string path)
+        private async Task<SeveraReturnModel<IEnumerable<T>>> GetEntities<T>(string path, int? maxPages = null)
         {
             var model = new SeveraReturnModel<IEnumerable<T>>();
             var list = new List<T>();
             string? nextToken = null;
             bool moreData;
+            int pageCount = 0;
+
             path = path + "&rowCount=50";
             do
             {
+                if(maxPages.HasValue && pageCount > maxPages)
+                {
+                    break;
+                }
                 var result = await MakeRequest<List<T>>(path, nextToken);
                 if (result != null && result.Data != null)
                 {
@@ -195,11 +206,12 @@ namespace Infrastructure.Severa
                 }
                 else
                 {
-                    _logger.LogError($"got the following error {result.Message} for query: {path}");
+                    _logger.LogError($"got the following error {result?.Message} for query: {path}");
                 }
                 moreData = result != null && result.IsSuccess && !string.IsNullOrWhiteSpace(result.NextToken);
                 model.IsSuccess = result?.IsSuccess ?? false;
                 nextToken = result?.NextToken;
+                pageCount++;
             }
             while (moreData);
             model.Data = list;

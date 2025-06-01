@@ -80,7 +80,6 @@ builder.Services.AddScoped<ISecretClient, DopplerClient>(provider =>
     var clientFactory = provider.GetRequiredService<IHttpClientFactory>();
     var httpClient = clientFactory.CreateClient("doppler");
     httpClient.BaseAddress = new Uri("https://api.doppler.com/v3/");
-    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
     return new DopplerClient(httpClient, token, environment);
 });
 builder.Services.AddHttpClient<ISeveraClient,SeveraClient>(client =>

@@ -66,6 +66,7 @@ builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
 builder.Services.AddScoped<SeveraJobs>();
+builder.Services.AddScoped<EntraJobs>();
 builder.Services.AddDbContext<SursenContext>((services, options) =>
 {
     var secretClient = services.GetRequiredService<ISecretClient>();
@@ -124,6 +125,11 @@ using (var scope = app.Services.CreateScope())
     jobManager.AddOrUpdate(
         "SynchronizePhases",
         () => scope.ServiceProvider.GetRequiredService<SeveraJobs>().SynchronizePhases(), "0 0 31 2 *");
+
+    jobManager.AddOrUpdate(
+        "SynchronizeEntraEmployees",
+        () => scope.ServiceProvider.GetRequiredService<EntraJobs>().GetAllEmployeesEntra(),
+        Cron.Daily);
 }
 
 app.UseHangfireDashboard();

@@ -1,13 +1,14 @@
 ﻿using Domain.Interfaces.Repositories;
 using Domain.Models;
-using Microsoft.EntityFrameworkCore;
 using Infrastructure.Persistance.Mappers;
+using Infrastructure.Persistance.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using System.Diagnostics.Contracts;
 
 namespace Infrastructure.Persistance.Repositories
 {
@@ -108,6 +109,58 @@ namespace Infrastructure.Persistance.Repositories
         {
             _logger.LogInformation("Inserting {Count} new absences", absences.Count());
             _db.Absences.AddRange(absences.Select(x => x.ToEntity()));
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task<List<EmployeeDTO>> GetByEntraIdsAsync(IEnumerable<Guid> entraIds)
+        {
+            var entities = await _db.Employees
+                .Where(e => entraIds.Contains(e.EntraId))
+                .ToListAsync();
+            return entities.Select(e => e.ToDto()).ToList();
+        }
+
+        public async Task InsertEmployeesAsync(IEnumerable<EmployeeDTO> dtos)
+        {
+            if (dtos == null) throw new ArgumentNullException(nameof(dtos));
+            var entities = dtos.Select(d => d.ToEntity()).ToList();
+            _db.Employees.AddRange(entities);
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task UpdateEmployeesAsync(IEnumerable<EmployeeDTO> dtos)
+        {
+            if (dtos == null) throw new ArgumentNullException(nameof(dtos));
+
+            var entraIds = dtos.Select(d => d.EntraId).ToHashSet();
+            var existingEntities = await _db.Employees
+                .Where(e => entraIds.Contains(e.EntraId))
+                .ToDictionaryAsync(e => e.EntraId);
+
+            var updatedEntitiesDict = dtos
+                .Select(d => d.ToEntity())
+                .ToDictionary(e => e.EntraId);
+
+            var now = DateTime.UtcNow;
+            foreach (var kvp in existingEntities)
+            {
+                var entraId = kvp.Key;
+                var existingEntity = kvp.Value;
+
+                if (updatedEntitiesDict.TryGetValue(entraId, out var updatedEntity))
+                {
+                    updatedEntity.Id = existingEntity.Id;
+                    updatedEntity.CreatedAt = existingEntity.CreatedAt;
+                    updatedEntity.UpdatedAt = now;
+
+                    _db.Entry(existingEntity).CurrentValues.SetValues(updatedEntity);
+                }
+                else
+                {
+                    _logger.LogError("Employee intended for update not found in input list. EntraId: {EntraId}", entraId);
+                }
+            }
+
             await _db.SaveChangesAsync();
         }
     }

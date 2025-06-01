@@ -81,6 +81,42 @@ namespace Application.Services
             _logger.LogInformation($"Done synchronizing contracts");
         }
 
+        public async Task SynchronizePhases()
+        {
+            _logger.LogInformation($"Start synchronizing of project phases");
+            var dbPhases = await _projectRepository.GetPhases();
+            var projects = await _projectRepository.GetProjects();
+            var dbExternalProjectIds = new HashSet<Guid>(projects.Select(x => x.ExternalId));
+            var dbExternalPhaseIds = new HashSet<Guid>(dbPhases.Select(x => x.ExternalId));
+            var phases = await _severaClient.GetPhases(dbExternalProjectIds);
+
+            var phaseArray = phases.ToArray();
+            _logger.LogInformation("Synchronizing on {0} projects phases", phaseArray.Length);
+
+            for (int i = 0; i < phaseArray.Count(); i++)
+            {
+                var project = projects.FirstOrDefault(x => x.ExternalId == phaseArray[i].ExternalProjectId);
+                if (project == null)
+                {
+                    _logger.LogError($"No project found for the phase user with external ID: {phaseArray[i].ExternalId}");
+                    continue;
+                }
+                phaseArray[i].ProjectId = project.Id;
+            }
+
+
+            var updateList = phaseArray.Where(x => dbExternalPhaseIds.Contains(x.ExternalId)).ToList();
+            var insertList = phaseArray.Where(x => !dbExternalPhaseIds.Contains(x.ExternalId)).ToList();
+
+            _logger.LogInformation($"Done pulling data from Severa, starting insert to db");
+            await _projectRepository.InsertPhases(insertList);
+            _logger.LogInformation($"Done insert to db, starting update existing items");
+            await _projectRepository.UpdatePhases(updateList);
+
+            _logger.LogInformation($"Done synchronizing phases");
+
+        }
+
         public async Task SynchronizeProjects()
         {
             _logger.LogInformation($"Start synchronizing of contracts");

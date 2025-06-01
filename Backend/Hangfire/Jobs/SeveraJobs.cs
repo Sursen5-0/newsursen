@@ -27,5 +27,10 @@ namespace Hangfire.Jobs
         {
             await employeeService.SynchronizeProjects();
         }
+        public async Task SynchronizePhases()
+        {
+            await employeeService.SynchronizePhases();
+        }
+
     }
 }

@@ -25,6 +25,18 @@ Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
     .MinimumLevel.Override("Microsoft.AspNetCore.Hosting", LogEventLevel.Warning)
     .MinimumLevel.Override("Microsoft.AspNetCore.Routing", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.AspNetCore.Server.Kestrel", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.AspNetCore.Http", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.Extensions.Http", LogEventLevel.Warning)
+    .MinimumLevel.Override("System.Net.Http.HttpClient", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Infrastructure", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Model.Validation", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Query", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Update", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
+    .MinimumLevel.Override("System.Data.SqlClient", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.Data.SqlClient", LogEventLevel.Warning).Enrich.FromLogContext()
     .Enrich.FromLogContext()
     .WriteTo.Console()
     .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day)
@@ -68,7 +80,6 @@ builder.Services.AddScoped<ISecretClient, DopplerClient>(provider =>
     var clientFactory = provider.GetRequiredService<IHttpClientFactory>();
     var httpClient = clientFactory.CreateClient("doppler");
     httpClient.BaseAddress = new Uri("https://api.doppler.com/v3/");
-    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
     return new DopplerClient(httpClient, token, environment);
 });
 builder.Services.AddHttpClient<ISeveraClient,SeveraClient>(client =>
@@ -110,6 +121,9 @@ using (var scope = app.Services.CreateScope())
     jobManager.AddOrUpdate(
         "SynchronizeProjects",
         () => scope.ServiceProvider.GetRequiredService<SeveraJobs>().SynchronizeProjects(), "0 0 31 2 *");
+    jobManager.AddOrUpdate(
+        "SynchronizePhases",
+        () => scope.ServiceProvider.GetRequiredService<SeveraJobs>().SynchronizePhases(), "0 0 31 2 *");
 
     jobManager.AddOrUpdate(
         "SynchronizeEntraEmployees",

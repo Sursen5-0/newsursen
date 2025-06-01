@@ -17,5 +17,6 @@ public partial class Project : BaseEntity
     public Guid ExternalResponsibleId { get; set; }
 
     public virtual ICollection<Allocation> Allocations { get; set; } = new List<Allocation>();
+    public virtual ICollection<ProjectPhase> Phases { get; set; } = new List<ProjectPhase>();
     public virtual Employee? Responsible { get; set; }
 }

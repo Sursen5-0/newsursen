@@ -15,5 +15,6 @@ namespace Domain.Interfaces.Services
 
         Task SynchronizeEmployeesAsync();
         public Task SynchronizeProjects();
+        public Task SynchronizePhases();
     }
 }

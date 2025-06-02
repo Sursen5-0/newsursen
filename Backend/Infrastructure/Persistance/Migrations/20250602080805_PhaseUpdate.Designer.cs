@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(SursenContext))]
-    [Migration("20250527092200_PhaseUpdate")]
+    [Migration("20250602080805_PhaseUpdate")]
     partial class PhaseUpdate
     {
         /// <inheritdoc />
@@ -159,7 +159,7 @@ namespace Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateOnly>("Birthdate")
+                    b.Property<DateOnly?>("Birthdate")
                         .HasColumnType("date");
 
                     b.Property<Guid>("BusinessUnitId")
@@ -189,7 +189,7 @@ namespace Infrastructure.Migrations
                         .HasColumnType("char(24)")
                         .IsFixedLength();
 
-                    b.Property<DateOnly>("HireDate")
+                    b.Property<DateOnly?>("HireDate")
                         .HasColumnType("date");
 
                     b.Property<string>("HubSpotId")

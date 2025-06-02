@@ -111,9 +111,9 @@ namespace Infrastructure.Severa
             }
             return response.Data.FirstOrDefault();
         }
-        public async Task<IEnumerable<AbsenceDTO>> GetAbsence(int? maxpages = null)
+        public async Task<IEnumerable<AbsenceDTO>> GetAbsence(DateTime? changedDate = null, int? maxpages = null)
         {
-            var response = await GetEntities<SeveraActivityModel>($"activities?&activityCategories=Absences", maxpages);
+            var response = await GetEntities<SeveraActivityModel>($"activities?&activityCategories=Absences", changedDate, maxpages);
 
             if (!response.IsSuccess)
             {
@@ -129,9 +129,9 @@ namespace Infrastructure.Severa
             return response.Data.Select(x => x.ToDto());
 
         }
-        public async Task<IEnumerable<ProjectDTO>> GetProjects(int? maxpages = null)
+        public async Task<IEnumerable<ProjectDTO>> GetProjects(DateTime? changedDate = null, int? maxpages = null)
         {
-            var response = await GetEntities<SeveraProjectModel>($"projects?", maxpages);
+            var response = await GetEntities<SeveraProjectModel>($"projects?", changedDate, maxpages);
 
             if (!response.IsSuccess)
             {
@@ -146,8 +146,7 @@ namespace Infrastructure.Severa
             return response.Data.Select(x => x.ToDto());
 
         }
-
-        public async Task<IEnumerable<ProjectPhaseDTO>> GetPhases(IEnumerable<Guid> projectIds, int? maxpages = null)
+        public async Task<IEnumerable<ProjectPhaseDTO>> GetPhases(IEnumerable<Guid> projectIds, DateTime? changedDate = null, int? maxpages = null)
         {
             var increment = 20;
             var skipAmount = 0;
@@ -161,7 +160,7 @@ namespace Infrastructure.Severa
             {
                 _logger.LogInformation($"Getting batch {i + 1} out of {rounds + 1}");
                 var calledItems = string.Join('&', projectIds.Skip(skipAmount).Take(takeAmount).Select(x => "projectGuids=" + x));
-                response = await GetEntities<SeveraPhaseModel>($"phases?{calledItems}", maxpages);
+                response = await GetEntities<SeveraPhaseModel>($"phases?{calledItems}", changedDate, maxpages);
                 if (!response.IsSuccess)
                 {
                     _logger.LogError($"Severa returned {response.Message} in phases");
@@ -180,12 +179,11 @@ namespace Infrastructure.Severa
 
             return list.Select(x => x.ToDto());
         }
-
         private async Task<SeveraReturnModel<T>> GetEntity<T>(string path)
         {
             return await MakeRequest<T>(path);
         }
-        private async Task<SeveraReturnModel<IEnumerable<T>>> GetEntities<T>(string path, int? maxPages = null)
+        private async Task<SeveraReturnModel<IEnumerable<T>>> GetEntities<T>(string path, DateTime? changedDate = null, int? maxPages = null)
         {
             var model = new SeveraReturnModel<IEnumerable<T>>();
             var list = new List<T>();
@@ -196,11 +194,11 @@ namespace Infrastructure.Severa
             path = path + "&rowCount=100";
             do
             {
-                if(maxPages.HasValue && pageCount > maxPages)
+                if (maxPages.HasValue && pageCount > maxPages)
                 {
                     break;
                 }
-                var result = await MakeRequest<List<T>>(path, nextToken);
+                var result = await MakeRequest<List<T>>(path, changedDate, nextToken);
                 if (result != null && result.Data != null)
                 {
                     list.AddRange(result.Data);
@@ -219,11 +217,20 @@ namespace Infrastructure.Severa
             return model;
 
         }
-        private async Task<SeveraReturnModel<T>> MakeRequest<T>(string path, string? nextToken = null)
+        private async Task<SeveraReturnModel<T>> MakeRequest<T>(string path, DateTime? changedDate = null, string? nextToken = null)
         {
+            if (path.IndexOf('?') == -1)
+            {
+                path += "?";
+            }
+
             if (nextToken != null)
             {
-                path = path + "&pageToken=" + nextToken;
+                path += "&pageToken=" + nextToken;
+            }
+            if (changedDate.HasValue)
+            {
+                path += "&changedSince=" + changedDate.Value.ToString("o");
             }
 
             var request = new HttpRequestMessage(HttpMethod.Get, path);

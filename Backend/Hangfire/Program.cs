@@ -61,7 +61,6 @@ builder.Services.AddHangfire(config =>
 builder.Services.AddHangfireServer();
 
 builder.Services.AddHttpClient();
-builder.Services.AddScoped<TestJob>();
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
@@ -112,9 +111,6 @@ using (var scope = app.Services.CreateScope())
         .UseSqlServerStorage(hangfireConnection)
         .UseSerilogLogProvider();
     var jobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
-
-    var testJob = scope.ServiceProvider.GetRequiredService<TestJob>();
-    jobManager.AddOrUpdate("my-recurring-job", () => testJob.WriteTest(), Cron.Minutely);
 
     jobManager.AddOrUpdate(
         "SynchronizeEmployees",

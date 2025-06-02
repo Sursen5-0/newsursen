@@ -24,11 +24,12 @@ namespace UnitTests.Services
         private readonly Mock<IProjectRepository> _projectRepoMock = new Mock<IProjectRepository>();
         private readonly Mock<ILogger<EmployeeService>> _loggerMock = new Mock<ILogger<EmployeeService>>();
         private readonly Mock<IEntraClient> _entraClientMock = new Mock<IEntraClient>();
+        private readonly Mock<IJobExecutionRepository> _JobExecutionRepoMock = new Mock<IJobExecutionRepository>();
         private EmployeeService _sut;
 
         public EmployeeServiceTests()
         {
-            _sut = new EmployeeService(_severaClientMock.Object, _entraClientMock.Object, _employeeRepoMock.Object, _projectRepoMock.Object, _loggerMock.Object);
+            _sut = new EmployeeService(_severaClientMock.Object, _entraClientMock.Object, _employeeRepoMock.Object, _projectRepoMock.Object, _loggerMock.Object, _JobExecutionRepoMock.Object);
 
         }
         [Fact]
@@ -124,7 +125,7 @@ namespace UnitTests.Services
             };
 
             _projectRepoMock.Setup(x => x.GetProjects(It.IsAny<bool>())).ReturnsAsync(dbProjects);
-            _severaClientMock.Setup(x => x.GetProjects(It.IsAny<int?>())).ReturnsAsync(severaProjects);
+            _severaClientMock.Setup(x => x.GetProjects(It.IsAny<DateTime?>(), It.IsAny<int?>())).ReturnsAsync(severaProjects);
             _employeeRepoMock.Setup(x => x.GetEmployees(It.IsAny<bool>())).ReturnsAsync(employees);
 
             // Act
@@ -147,7 +148,7 @@ namespace UnitTests.Services
                 new ProjectDTO() { ExternalId = Guid.NewGuid(), ExternalOwnerId = Guid.NewGuid() , Name ="test"}
             };
             _projectRepoMock.Setup(x => x.GetProjects(It.IsAny<bool>())).ReturnsAsync(new List<ProjectDTO>());
-            _severaClientMock.Setup(x => x.GetProjects(It.IsAny<int?>())).ReturnsAsync(severaProjects);
+            _severaClientMock.Setup(x => x.GetProjects(It.IsAny<DateTime?>(), It.IsAny<int?>())).ReturnsAsync(severaProjects);
             _employeeRepoMock.Setup(x => x.GetEmployees(It.IsAny<bool>())).ReturnsAsync(new List<EmployeeDTO>());
 
             // Act
@@ -172,7 +173,7 @@ namespace UnitTests.Services
             };
 
             _projectRepoMock.Setup(x => x.GetProjects(It.IsAny<bool>())).ReturnsAsync(new List<ProjectDTO>());
-            _severaClientMock.Setup(x => x.GetProjects(It.IsAny<int?>())).ReturnsAsync(severaProjects);
+            _severaClientMock.Setup(x => x.GetProjects(It.IsAny<DateTime?>(), It.IsAny<int?>())).ReturnsAsync(severaProjects);
             _employeeRepoMock.Setup(x => x.GetEmployees(It.IsAny<bool>())).ReturnsAsync(employees);
             
             // Act
@@ -202,7 +203,7 @@ namespace UnitTests.Services
             };
 
             _projectRepoMock.Setup(x => x.GetProjects(It.IsAny<bool>())).ReturnsAsync(dbProjects);
-            _severaClientMock.Setup(x => x.GetProjects(It.IsAny<int?>())).ReturnsAsync(severaProjects);
+            _severaClientMock.Setup(x => x.GetProjects(It.IsAny<DateTime?>(), It.IsAny<int?>())).ReturnsAsync(severaProjects);
             _employeeRepoMock.Setup(x => x.GetEmployees(It.IsAny<bool>())).ReturnsAsync(employees);
 
             // Act

@@ -4,6 +4,7 @@ namespace Domain.Interfaces.Repositories
 {
     public interface IJobExecutionRepository
     {
-        void InsertJobExecution(JobExecutionDTO job);
+        Task InsertJobExecution(JobExecutionDTO job);
+        Task<DateTime?> GetLatestSuccessfulJobExecutionByName(string name);
     }
 }

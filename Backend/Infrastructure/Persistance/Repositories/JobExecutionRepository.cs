@@ -1,6 +1,7 @@
 ﻿using Domain.Interfaces.Repositories;
 using Domain.Models;
 using Infrastructure.Persistance.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +13,28 @@ namespace Infrastructure.Persistance.Repositories
 {
     public class JobExecutionRepository(SursenContext _db) : IJobExecutionRepository
     {
-        public void InsertJobExecution(JobExecutionDTO job)
+        public async Task<DateTime?> GetLatestSuccessfulJobExecutionByName(string name)
+        {
+            if(string.IsNullOrEmpty(name))
+            {
+                return null;
+            }
+            var jobExecution = await _db.JobExecutions.Where(x => x.JobName == name && x.IsSuccess)
+                .OrderByDescending(x => x.CompletionDate)
+                .FirstOrDefaultAsync();
+
+            if(jobExecution == null)
+            {
+                return null;
+            }
+            else
+            {
+                return jobExecution.CompletionDate;
+            }
+
+        }
+
+        public async Task InsertJobExecution(JobExecutionDTO job)
         {
             var jobExecution = new JobExecution
             {
@@ -24,7 +46,7 @@ namespace Infrastructure.Persistance.Repositories
                 IsSuccess = job.IsSuccess
             };
             _db.JobExecutions.Add(jobExecution);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
         }
     }
 }

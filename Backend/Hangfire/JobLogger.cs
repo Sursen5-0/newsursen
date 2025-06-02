@@ -9,7 +9,7 @@ namespace Hangfire
         {
             var jobExecution = new JobExecutionDTO()
             {
-                JobName = MethodBase.GetCurrentMethod()?.Name ?? "Unknown method",
+                JobName = jobName ?? "Unknown method",
                 StartTimeDate = DateTime.UtcNow,
             };
             try

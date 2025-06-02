@@ -152,6 +152,10 @@ using (var scope = app.Services.CreateScope())
     jobManager.AddOrUpdate(
         "SynchronizeEmployeesWithFlowcaseIdsAsync",
         () => scope.ServiceProvider.GetRequiredService<FlowCaseJob>().SynchronizeEmployeesWithFlowcaseIdsAsync(), "0 0 31 2 *");
+
+    jobManager.AddOrUpdate(
+        "SynchronizeEmployeeSkillsAsync",
+        () => scope.ServiceProvider.GetRequiredService<FlowCaseJob>().SynchronizeEmployeeSkillsAsync(), "0 0 31 2 *");
 }
 
 app.UseHangfireDashboard();

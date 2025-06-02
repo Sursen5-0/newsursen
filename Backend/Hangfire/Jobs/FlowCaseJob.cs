@@ -16,5 +16,10 @@ namespace HangFire.Jobs
         {
             await employeeService.SynchronizeEmployeesWithFlowcaseIdsAsync();
         }
+
+        public async Task SynchronizeEmployeeSkillsAsync() 
+        { 
+            await employeeService.SynchronizeEmployeeSkillsAsync();
+        }
     }
 }

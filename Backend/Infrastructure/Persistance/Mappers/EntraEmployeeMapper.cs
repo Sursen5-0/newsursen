@@ -21,6 +21,7 @@ namespace Infrastructure.Persistance.Mappers
                 LeaveDate = dto.LeaveDate,
                 WorkPhoneNumber = dto.WorkPhoneNumber,
                 PersonalPhoneNumber = dto.PersonalPhoneNumber,
+                SeveraId = dto.SeveraId
             };
         }
 
@@ -38,6 +39,7 @@ namespace Infrastructure.Persistance.Mappers
                 LeaveDate = entity.LeaveDate,
                 WorkPhoneNumber = entity.WorkPhoneNumber,
                 PersonalPhoneNumber = entity.PersonalPhoneNumber,
+                SeveraId = entity.SeveraId,
             };
         }
     }

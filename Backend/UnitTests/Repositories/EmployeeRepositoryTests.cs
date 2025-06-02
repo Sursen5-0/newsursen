@@ -60,7 +60,7 @@ namespace UnitTests.Repositories
                 FirstName = "Test",
                 LastName = "Test",
                 FlowCaseId = "test",
-                HireDate = DateOnly.MinValue,
+                HireDate = DateTime.MinValue,
                 HubSpotId = "test",
                 LeaveDate = DateOnly.MinValue,
                 Id = validEmployeeId,
@@ -151,7 +151,7 @@ namespace UnitTests.Repositories
                 FirstName = "NewFirst",
                 LastName = "NewLast",
                 Email = "new@domain.com",
-                HireDate = DateOnly.FromDateTime(DateTime.UtcNow),
+                HireDate = DateTime.UtcNow,
                 LeaveDate = DateOnly.FromDateTime(DateTime.UtcNow)
             };
             var dtos = new List<EmployeeDTO> { dto };

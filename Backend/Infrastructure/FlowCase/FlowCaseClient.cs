@@ -34,11 +34,22 @@ namespace Infrastructure.FlowCase
             _logger = logger;
         }
 
-        public async Task<List<SkillDTO>> GetSkillsFromCVAsync(string user_id, string cv_id)
+        /// <summary>
+        /// Retrieves a list of skills from a CV for a specified user and CV ID.
+        /// </summary>
+        /// <remarks>This method retrieves skills from a CV by making an API call to the specified
+        /// endpoint.  Skills with empty or whitespace names are skipped, and a warning is logged for each skipped
+        /// skill.</remarks>
+        /// <param name="user_id">The unique identifier of the user whose CV is being accessed. Cannot be null or empty.</param>
+        /// <param name="cv_id">The unique identifier of the CV from which skills are to be retrieved. Cannot be null or empty.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains a list of <see cref="SkillDTO"/>
+        /// objects representing the skills extracted from the CV.</returns>
+        /// <exception cref="Exception">Thrown if the operation to retrieve skills fails, including details of the failure in the exception message.</exception>
+        public async Task<List<SkillDTO>> GetSkillsFromCVAsync(string userId, string cvId)
         {
             List<SkillDTO> skills = new List<SkillDTO>();
-            var uri = $"api/v3/cvs/{user_id}/{cv_id}";
-            var response = await GetEntity<List<FlowcaseSkillModel>>(uri);
+            var uri = $"api/v3/cvs/{userId}/{cvId}";
+            var response = await MakeRequest<List<FlowcaseSkillModel>>(uri);
             if (!response.IsSuccess)
             {
                 throw new Exception($"Failed to retrieve skills: {response.Message}");
@@ -64,6 +75,15 @@ namespace Infrastructure.FlowCase
             return skills;
         }
 
+        /// <summary>
+        /// Retrieves a list of skills from the Flowcase API and inserts them into the SKills table.
+        /// </summary>
+        /// <remarks>This method fetches skills in batches from the Flowcase API, processes them into a
+        /// list of <see cref="SkillDTO"/> objects, and returns the aggregated result. Skills with empty or null names
+        /// are skipped, and a warning is logged for each skipped skill.</remarks>
+        /// <returns>A <see cref="Task{TResult}"/> representing the asynchronous operation. The result contains a list of <see
+        /// cref="SkillDTO"/> objects representing the skills retrieved from the Flowcase API.</returns>
+        /// <exception cref="Exception">Thrown if the API request fails or returns an unsuccessful response.</exception>
         public async Task<List<SkillDTO>> GetSkillsFromFlowcaseAsync()
         {
 
@@ -72,7 +92,7 @@ namespace Infrastructure.FlowCase
             int limit = 100;
 
             var uri = $"api/v1/masterdata/technologies/tags?offset={offset}&limit={limit}";
-            var response = await GetEntity<List<FlowcaseSkillModel>>(uri);
+            var response = await MakeRequest<List<FlowcaseSkillModel>>(uri);
             if (!response.IsSuccess)
             {
                 throw new Exception($"Failed to retrieve skills: {response.Message}");
@@ -100,7 +120,6 @@ namespace Infrastructure.FlowCase
                 offset += limit;
                 uri = $"api/v1/masterdata/technologies/tags?offset={offset}&limit={limit}";
                 response = await MakeRequest<List<FlowcaseSkillModel>>(uri);
-                Thread.Sleep(1000); // Adding a delay to avoid hitting API rate limits
             }
 
             return skills;
@@ -131,7 +150,6 @@ namespace Infrastructure.FlowCase
                 offset += limit;
                 uri = $"api/v1/users?offset={offset}&limit={limit}";
                 response = await MakeRequest<List<FlowcaseUserModel>>(uri);
-                Thread.Sleep(1000); // Adding a delay to avoid hitting API rate limits
             }
             return users;
 

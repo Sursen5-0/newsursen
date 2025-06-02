@@ -218,13 +218,13 @@ namespace Application.Services
             var employees = await _employeeRepository.GetEmployees();
             foreach (var employee in employees)
             {
-                var skills = await _flowcaseClient.GetSkillsFromCVAsync(employee.FlowcaseId, employee.CvId);
-                if (skills == null || !skills.Any())
+                var skillsDto = await _flowcaseClient.GetSkillsFromCVAsync(employee.FlowCaseId, employee.CvId);
+                if (skillsDto == null || !skillsDto.Any())
                 {
                     _logger.LogWarning($"No skills found for employee {employee.Id}, skipping synchronization.");
                     continue;
                 }
-                foreach (var skill in skills)
+                /*foreach (var skill in skillsDto)
                 {
                     if (!employee.SkillName.Any(s => s.SkillName == skill.SkillName))
                     {
@@ -235,8 +235,9 @@ namespace Application.Services
                     {
                         _logger.LogInformation($"Skill {skill.SkillName} already exists for employee {employee.Id}, skipping addition.");
                     }
-                }
+                }*/
             }
+
         }
 
         /*        public async Task MapEmployeeSkillsAsync()

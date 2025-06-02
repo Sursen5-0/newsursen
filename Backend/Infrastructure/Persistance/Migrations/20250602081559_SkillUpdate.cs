@@ -19,6 +19,12 @@ namespace Infrastructure.Migrations
                 maxLength: 24,
                 nullable: false,
                 defaultValue: "");
+
+            migrationBuilder.AddColumn<string>(
+                name: "FlowCaseCVId",
+                table: "Employees",
+                type: "nvarchar(max)",
+                nullable: true);
         }
 
         /// <inheritdoc />
@@ -27,6 +33,10 @@ namespace Infrastructure.Migrations
             migrationBuilder.DropColumn(
                 name: "ExternalId",
                 table: "Skills");
+
+            migrationBuilder.DropColumn(
+                name: "FlowCaseCVId",
+                table: "Employees");
         }
     }
 }

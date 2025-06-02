@@ -24,11 +24,12 @@ namespace UnitTests.Services
         private readonly Mock<IProjectRepository> _projectRepoMock = new Mock<IProjectRepository>();
         private readonly Mock<ILogger<EmployeeService>> _loggerMock = new Mock<ILogger<EmployeeService>>();
         private readonly Mock<IEntraClient> _entraClientMock = new Mock<IEntraClient>();
+        private readonly Mock<IFlowCaseClient> _flowcaseClientMock = new Mock<IFlowCaseClient>();
         private EmployeeService _sut;
 
         public EmployeeServiceTests()
         {
-            _sut = new EmployeeService(_severaClientMock.Object, _entraClientMock.Object, _employeeRepoMock.Object, _projectRepoMock.Object, _loggerMock.Object);
+            _sut = new EmployeeService(_severaClientMock.Object, _entraClientMock.Object, _flowcaseClientMock.Object, _employeeRepoMock.Object, _projectRepoMock.Object, _loggerMock.Object);
 
         }
         [Fact]
@@ -39,11 +40,9 @@ namespace UnitTests.Services
             _employeeRepoMock.Setup(x => x.GetEmployees(It.IsAny<bool>())).ReturnsAsync(emptyEmployeeList);
             _employeeRepoMock.Setup(x => x.InsertEmployeeContracts(It.IsAny<IEnumerable<EmployeeContractDTO>>())).Verifiable();
 
-            _employeeRepositoryMock.Setup(x => x.GetEmployees(It.IsAny<bool>())).ReturnsAsync(emptyEmployeeList);
-            _employeeRepositoryMock.Setup(x => x.InsertEmployeeContracts(It.IsAny<IEnumerable<EmployeeContractDTO>>())).Verifiable();
+            _employeeRepoMock.Setup(x => x.GetEmployees(It.IsAny<bool>())).ReturnsAsync(emptyEmployeeList);
+            _employeeRepoMock.Setup(x => x.InsertEmployeeContracts(It.IsAny<IEnumerable<EmployeeContractDTO>>())).Verifiable();
             
-            _service = new EmployeeService(_severaClientMock.Object, _flowcaseClientMock.Object, _employeeRepositoryMock.Object, _loggerMock.Object);
-
 
             // Act
             await _sut.SynchronizeContracts();

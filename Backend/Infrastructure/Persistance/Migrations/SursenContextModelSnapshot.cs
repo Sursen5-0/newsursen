@@ -180,6 +180,9 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
+                    b.Property<string>("FlowCaseCVId")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("FlowCaseId")
                         .HasMaxLength(24)
                         .IsUnicode(false)

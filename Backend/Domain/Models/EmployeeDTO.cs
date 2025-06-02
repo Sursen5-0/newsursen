@@ -33,6 +33,6 @@ namespace Domain.Models
 
         public string? FlowCaseId { get; set; }
 
-        public string CvId { get; set; } = null!;
+        public string? CvId { get; set; }
     }
 }

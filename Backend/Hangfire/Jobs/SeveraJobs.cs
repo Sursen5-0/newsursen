@@ -22,5 +22,15 @@ namespace Hangfire.Jobs
         {
             await employeeService.SynchronizeAbsence();
         }
+
+        public async Task SynchronizeProjects()
+        {
+            await employeeService.SynchronizeProjects();
+        }
+        public async Task SynchronizePhases()
+        {
+            await employeeService.SynchronizePhases();
+        }
+
     }
 }

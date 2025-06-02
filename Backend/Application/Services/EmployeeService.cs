@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Application.Services
 {
-    public class EmployeeService(ISeveraClient _severaClient, IFlowCaseClient _flowcaseClient, IEmployeeRepository _employeeRepository, ILogger<EmployeeService> _logger) : IEmployeeService
+    public class EmployeeService(ISeveraClient _severaClient, IEntraClient _entraClient, IFlowCaseClient _flowcaseClient, IEmployeeRepository _employeeRepository, IProjectRepository _projectRepository, ILogger<EmployeeService> _logger) : IEmployeeService
     {
         public async Task SynchronizeAbsence()
         {
@@ -52,8 +52,6 @@ namespace Application.Services
                 }
             }
 
-
-
             insertList = insertList.Where(x => x.EmployeeId.HasValue).ToList();
             _logger.LogInformation("Updating {updateamount}", updateList.Count);
             await _employeeRepository.UpdateAbsences(updateList);
@@ -83,6 +81,77 @@ namespace Application.Services
             _logger.LogInformation($"Done synchronizing contracts");
         }
 
+        public async Task SynchronizePhases()
+        {
+            _logger.LogInformation($"Start synchronizing of project phases");
+            var dbPhases = await _projectRepository.GetPhases();
+            var projects = await _projectRepository.GetProjects();
+            var dbExternalProjectIds = new HashSet<Guid>(projects.Select(x => x.ExternalId));
+            var dbExternalPhaseIds = new HashSet<Guid>(dbPhases.Select(x => x.ExternalId));
+            var phases = await _severaClient.GetPhases(dbExternalProjectIds);
+
+            var phaseArray = phases.ToArray();
+            _logger.LogInformation("Synchronizing on {0} projects phases", phaseArray.Length);
+
+            for (int i = 0; i < phaseArray.Count(); i++)
+            {
+                var project = projects.FirstOrDefault(x => x.ExternalId == phaseArray[i].ExternalProjectId);
+                if (project == null)
+                {
+                    _logger.LogError($"No project found for the phase user with external ID: {phaseArray[i].ExternalId}");
+                    continue;
+                }
+                phaseArray[i].ProjectId = project.Id;
+            }
+
+
+            var updateList = phaseArray.Where(x => dbExternalPhaseIds.Contains(x.ExternalId)).ToList();
+            var insertList = phaseArray.Where(x => !dbExternalPhaseIds.Contains(x.ExternalId)).ToList();
+
+            _logger.LogInformation($"Done pulling data from Severa, starting insert to db");
+            await _projectRepository.InsertPhases(insertList);
+            _logger.LogInformation($"Done insert to db, starting update existing items");
+            await _projectRepository.UpdatePhases(updateList);
+
+            _logger.LogInformation($"Done synchronizing phases");
+
+        }
+
+        public async Task SynchronizeProjects()
+        {
+            _logger.LogInformation($"Start synchronizing of contracts");
+            var dbProjects = await _projectRepository.GetProjects();
+            var projects = await _severaClient.GetProjects();
+            var dbExternalIds = new HashSet<Guid>(dbProjects.Select(x => x.ExternalId));
+            var employees = await _employeeRepository.GetEmployees();
+
+            _logger.LogInformation("Synchronizing on {projects.Count()} projects", projects.Count());
+            var projectArray = projects.ToArray();
+
+            for (int i = 0; i < projectArray.Count(); i++)
+            {
+                var employee = employees.FirstOrDefault(x => x.SeveraId == projectArray[i].ExternalOwnerId);
+                if (employee == null)
+                {
+                    _logger.LogError("No employeeId found for the severa user with ID: {absence.ExternalId}", projectArray[i].ExternalId);
+                    continue;
+                }
+                projectArray[i].OwnerId = employee.Id;
+            }
+
+
+            var updateList = projectArray.Where(a => dbExternalIds.Contains(a.ExternalId)).ToList();
+            var insertList = projectArray.Where(a => !dbExternalIds.Contains(a.ExternalId)).ToList();
+
+            _logger.LogInformation($"Done pulling data from Severa, starting insert to db");
+            await _projectRepository.InsertProjects(insertList);
+            _logger.LogInformation($"Done insert to db, starting update existing items");
+            await _projectRepository.UpdateProjects(updateList);
+
+            _logger.LogInformation($"Done synchronizing Projects");
+
+        }
+
         public async Task SynchronizeUnmappedSeveraIds()
         {
             _logger.LogInformation($"Start synchronizing of severaIds");
@@ -98,6 +167,48 @@ namespace Application.Services
                 severaEmployees.Add(data);
             }
             await _employeeRepository.UpdateSeveraIds(severaEmployees);
+        }
+
+        public async Task SynchronizeEmployeesAsync()
+        {
+            var dtos = await _entraClient.GetAllEmployeesAsync() ?? new List<EmployeeDTO>();
+
+            var validDtos = new List<EmployeeDTO>();
+            foreach (var dto in dtos)
+            {
+                if (dto == null)
+                {
+                    _logger.LogWarning("Skipped null EmployeeDTO");
+                    continue;
+                }
+                validDtos.Add(dto);
+            }
+
+            if (!validDtos.Any())
+            {
+                _logger.LogInformation("No valid employees to synchronize.");
+                return;
+            }
+
+            var incomingIds = validDtos.Select(d => d.EntraId).ToList();
+            var existingDtos = await _employeeRepository.GetByEntraIdsAsync(incomingIds);
+            var existingIds = new HashSet<Guid>(existingDtos.Select(e => e.EntraId));
+
+            var insertList = validDtos.Where(d => !existingIds.Contains(d.EntraId)).ToList();
+            var updateList = validDtos.Where(d => existingIds.Contains(d.EntraId)).ToList();
+
+            if (insertList.Any())
+            {
+                await _employeeRepository.InsertEmployeesAsync(insertList);
+                foreach (var dto in insertList)
+                    _logger.LogInformation("Inserted employee {EntraId}", dto.EntraId);
+            }
+            if (updateList.Any())
+            {
+                await _employeeRepository.UpdateEmployeesAsync(updateList);
+                foreach (var dto in updateList)
+                    _logger.LogInformation("Updated employee {EntraId}", dto.EntraId);
+            }
         }
 
         public async Task SynchronizeEmployeeSkillsFromFlowcaseAsync()

@@ -17,6 +17,10 @@ namespace Domain.Interfaces.Repositories
         public Task UpdateAbsences(IEnumerable<AbsenceDTO> absences);
         public Task InsertAbsences(IEnumerable<AbsenceDTO> absences);
 
+        Task<List<EmployeeDTO>> GetByEntraIdsAsync(IEnumerable<Guid> entraIds);
+        Task InsertEmployeesAsync(IEnumerable<EmployeeDTO> dtos);
+        Task UpdateEmployeesAsync(IEnumerable<EmployeeDTO> dtos);
+
 
     }
 }

@@ -1,0 +1,44 @@
+﻿using System;
+using Domain.Models;
+using Infrastructure.Persistance.Models;
+
+namespace Infrastructure.Persistance.Mappers
+{
+    public static class EntraEmployeeMapper
+    {
+        public static Employee ToEntity(this EmployeeDTO dto)
+        {
+            if (dto == null) throw new ArgumentNullException(nameof(dto));
+
+            return new Employee
+            {
+                Id = Guid.NewGuid(),
+                EntraId = dto.EntraId,
+                FirstName = dto.FirstName,
+                LastName = dto.LastName,
+                Email = dto.Email,
+                HireDate = dto.HireDate,
+                LeaveDate = dto.LeaveDate,
+                WorkPhoneNumber = dto.WorkPhoneNumber,
+                PersonalPhoneNumber = dto.PersonalPhoneNumber,
+            };
+        }
+
+        public static EmployeeDTO ToDto(this Employee entity)
+        {
+            if (entity == null) throw new ArgumentNullException(nameof(entity));
+
+            return new EmployeeDTO
+            {
+                Id = entity.Id,
+                EntraId = entity.EntraId,
+                FirstName = entity.FirstName,
+                LastName = entity.LastName,
+                Email = entity.Email,
+                LeaveDate = entity.LeaveDate,
+                WorkPhoneNumber = entity.WorkPhoneNumber,
+                PersonalPhoneNumber = entity.PersonalPhoneNumber,
+            };
+        }
+    }
+}

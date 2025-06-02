@@ -4,6 +4,7 @@ using Infrastructure.Persistance;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(SursenContext))]
-    partial class SursenContextModelSnapshot : ModelSnapshot
+    [Migration("20250527092200_PhaseUpdate")]
+    partial class PhaseUpdate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -156,7 +159,7 @@ namespace Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateOnly?>("Birthdate")
+                    b.Property<DateOnly>("Birthdate")
                         .HasColumnType("date");
 
                     b.Property<Guid>("BusinessUnitId")
@@ -186,7 +189,7 @@ namespace Infrastructure.Migrations
                         .HasColumnType("char(24)")
                         .IsFixedLength();
 
-                    b.Property<DateOnly?>("HireDate")
+                    b.Property<DateOnly>("HireDate")
                         .HasColumnType("date");
 
                     b.Property<string>("HubSpotId")
@@ -504,13 +507,6 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("getdate()");
-
-                    b.Property<string>("ExternalId")
-                        .IsRequired()
-                        .HasMaxLength(24)
-                        .IsUnicode(false)
-                        .HasColumnType("char(24)")
-                        .IsFixedLength();
 
                     b.Property<string>("Name")
                         .IsRequired()

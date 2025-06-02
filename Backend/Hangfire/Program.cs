@@ -27,6 +27,18 @@ Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
     .MinimumLevel.Override("Microsoft.AspNetCore.Hosting", LogEventLevel.Warning)
     .MinimumLevel.Override("Microsoft.AspNetCore.Routing", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.AspNetCore.Server.Kestrel", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.AspNetCore.Http", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.Extensions.Http", LogEventLevel.Warning)
+    .MinimumLevel.Override("System.Net.Http.HttpClient", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Infrastructure", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Model.Validation", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Query", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Update", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
+    .MinimumLevel.Override("System.Data.SqlClient", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.Data.SqlClient", LogEventLevel.Warning).Enrich.FromLogContext()
     .Enrich.FromLogContext()
     .WriteTo.Console()
     .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day)
@@ -54,7 +66,9 @@ builder.Services.AddHttpClient();
 builder.Services.AddScoped<TestJob>();
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
 builder.Services.AddScoped<SeveraJobs>();
+builder.Services.AddScoped<EntraJobs>();
 builder.Services.AddScoped<FlowCaseJob>();
 builder.Services.AddScoped<ISkillService, SkillService>();
 builder.Services.AddScoped<ISkillRepository, SkillRepository>();
@@ -71,7 +85,6 @@ builder.Services.AddScoped<ISecretClient, DopplerClient>(provider =>
     var clientFactory = provider.GetRequiredService<IHttpClientFactory>();
     var httpClient = clientFactory.CreateClient("doppler");
     httpClient.BaseAddress = new Uri("https://api.doppler.com/v3/");
-    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
     return new DopplerClient(httpClient, token, environment);
 });
 builder.Services.AddHttpClient<ISeveraClient,SeveraClient>(client =>
@@ -115,16 +128,24 @@ using (var scope = app.Services.CreateScope())
 
     jobManager.AddOrUpdate(
         "SynchronizeEmployees",
-        () => scope.ServiceProvider.GetRequiredService<SeveraJobs>().SynchronizeEmployees(),
-        "0 0 31 2 *");
-
+        () => scope.ServiceProvider.GetRequiredService<SeveraJobs>().SynchronizeEmployees(),"0 0 31 2 *");
     jobManager.AddOrUpdate(
         "SynchronizeContracts",
         () => scope.ServiceProvider.GetRequiredService<SeveraJobs>().SynchronizeContracts(), "0 0 31 2 *");
     jobManager.AddOrUpdate(
-    "SynchronizeAbsence",
-    () => scope.ServiceProvider.GetRequiredService<SeveraJobs>().SynchronizeAbsence(), "0 0 31 2 *");
+        "SynchronizeAbsence",
+        () => scope.ServiceProvider.GetRequiredService<SeveraJobs>().SynchronizeAbsence(), "0 0 31 2 *");
+    jobManager.AddOrUpdate(
+        "SynchronizeProjects",
+        () => scope.ServiceProvider.GetRequiredService<SeveraJobs>().SynchronizeProjects(), "0 0 31 2 *");
+    jobManager.AddOrUpdate(
+        "SynchronizePhases",
+        () => scope.ServiceProvider.GetRequiredService<SeveraJobs>().SynchronizePhases(), "0 0 31 2 *");
 
+    jobManager.AddOrUpdate(
+        "SynchronizeEntraEmployees",
+        () => scope.ServiceProvider.GetRequiredService<EntraJobs>().GetAllEmployeesEntra(),
+        Cron.Daily);
     jobManager.AddOrUpdate(
         "SynchronizeSkills",
         () => scope.ServiceProvider.GetRequiredService<FlowCaseJob>().SynchronizeSkills(), "0 0 31 2 *");

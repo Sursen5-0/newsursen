@@ -4,6 +4,7 @@ using Infrastructure.Persistance;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(SursenContext))]
-    partial class SursenContextModelSnapshot : ModelSnapshot
+    [Migration("20250526163549_ProjectUpdate")]
+    partial class ProjectUpdate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -156,7 +159,7 @@ namespace Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateOnly?>("Birthdate")
+                    b.Property<DateOnly>("Birthdate")
                         .HasColumnType("date");
 
                     b.Property<Guid>("BusinessUnitId")
@@ -186,7 +189,7 @@ namespace Infrastructure.Migrations
                         .HasColumnType("char(24)")
                         .IsFixedLength();
 
-                    b.Property<DateOnly?>("HireDate")
+                    b.Property<DateOnly>("HireDate")
                         .HasColumnType("date");
 
                     b.Property<string>("HubSpotId")
@@ -451,50 +454,6 @@ namespace Infrastructure.Migrations
                     b.ToTable("ProjectEmployees");
                 });
 
-            modelBuilder.Entity("Infrastructure.Persistance.Models.ProjectPhase", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("getdate()");
-
-                    b.Property<DateTime?>("DeadLine")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid>("ExternalId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<Guid?>("ParentPhaseId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("ProjectId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("StartDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("getdate()");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ParentPhaseId");
-
-                    b.HasIndex("ProjectId");
-
-                    b.ToTable("ProjectPhases");
-                });
-
             modelBuilder.Entity("Infrastructure.Persistance.Models.Skill", b =>
                 {
                     b.Property<Guid>("Id")
@@ -504,13 +463,6 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("getdate()");
-
-                    b.Property<string>("ExternalId")
-                        .IsRequired()
-                        .HasMaxLength(24)
-                        .IsUnicode(false)
-                        .HasColumnType("char(24)")
-                        .IsFixedLength();
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -681,24 +633,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("Project");
                 });
 
-            modelBuilder.Entity("Infrastructure.Persistance.Models.ProjectPhase", b =>
-                {
-                    b.HasOne("Infrastructure.Persistance.Models.ProjectPhase", "ParentPhase")
-                        .WithMany("UnderPhases")
-                        .HasForeignKey("ParentPhaseId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Infrastructure.Persistance.Models.Project", "Project")
-                        .WithMany("Phases")
-                        .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("ParentPhase");
-
-                    b.Navigation("Project");
-                });
-
             modelBuilder.Entity("Infrastructure.Persistance.Models.Deal", b =>
                 {
                     b.Navigation("LineItems");
@@ -733,13 +667,6 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Infrastructure.Persistance.Models.Project", b =>
                 {
                     b.Navigation("Allocations");
-
-                    b.Navigation("Phases");
-                });
-
-            modelBuilder.Entity("Infrastructure.Persistance.Models.ProjectPhase", b =>
-                {
-                    b.Navigation("UnderPhases");
                 });
 #pragma warning restore 612, 618
         }

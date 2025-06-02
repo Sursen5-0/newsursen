@@ -48,7 +48,7 @@ namespace Infrastructure.Severa.Models
         [JsonPropertyName("activityType")]
         public required ActivityType ActivityType { get; set; }
         [JsonPropertyName("ownerUser")]
-        public required Owner Owner { get; set; }
+        public required SimpleReferenceModel Owner { get; set; }
 
     }
     public class ActivityType
@@ -56,13 +56,4 @@ namespace Infrastructure.Severa.Models
         [JsonPropertyName("name")]
         public string Name { get; set; } = null!;
     }
-    public class Owner
-    {
-        [JsonPropertyName("guid")]
-        public Guid? Id { get; set; }
-
-        [JsonPropertyName("name")]
-        public string Name { get; set; } = null!;
-    }
-
 }

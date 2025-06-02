@@ -3,7 +3,7 @@ using System.Linq;
 using Domain.Models;
 using Infrastructure.Persistance.Models;
 
-namespace Infrastructure.Persistance.Mappers
+namespace Infrastructure.Entra.Mappers
 {
     internal static class JsonToDtoEmployeeMapper
     {
@@ -20,7 +20,7 @@ namespace Infrastructure.Persistance.Mappers
 
                 LeaveDate = model.LeaveDate.HasValue
                             ? DateOnly.FromDateTime(model.LeaveDate.Value)
-                            : (DateOnly?)null,
+                            : null,
 
                 WorkPhoneNumber = model.BusinessPhones?.FirstOrDefault(), 
                 PersonalPhoneNumber = model.PersonalPhoneNumber,

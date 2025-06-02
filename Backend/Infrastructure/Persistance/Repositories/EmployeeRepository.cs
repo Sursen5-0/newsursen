@@ -1,5 +1,6 @@
 ﻿using Domain.Interfaces.Repositories;
 using Domain.Models;
+using Infrastructure.Entra.Mappers;
 using Infrastructure.Persistance.Mappers;
 using Infrastructure.Persistance.Models;
 using Microsoft.EntityFrameworkCore;

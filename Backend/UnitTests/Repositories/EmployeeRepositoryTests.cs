@@ -108,14 +108,14 @@ namespace UnitTests.Repositories
         [Fact]
         public async Task UpdateEmployeesAsync_NoErrorLog_WhenEntityNotFound()
         {
-            // Arrange
+            // Arrange: no existing employees in DB
             var dto = new EmployeeDTO { EntraId = Guid.NewGuid(), FirstName = "New" };
             var dtos = new List<EmployeeDTO> { dto };
 
             // Act
             await sut.UpdateEmployeesAsync(dtos);
 
-            // Assert:
+            // Assert: Since there is no matching Employee in the DB, we should not log any error
             _logger.Verify(
                 x => x.Log(
                     LogLevel.Error,
@@ -139,6 +139,11 @@ namespace UnitTests.Repositories
                 FirstName = "OldFirst",
                 LastName = "OldLast",
                 Email = "old@domain.com",
+                HireDate = DateTime.UtcNow.AddDays(-10),
+                LeaveDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1)),
+                WorkPhoneNumber = "123",
+                PersonalPhoneNumber = "456",
+                FlowCaseId = "FLOW",
                 CreatedAt = originalCreated,
                 UpdatedAt = originalCreated
             };
@@ -152,7 +157,9 @@ namespace UnitTests.Repositories
                 LastName = "NewLast",
                 Email = "new@domain.com",
                 HireDate = DateTime.UtcNow,
-                LeaveDate = DateOnly.FromDateTime(DateTime.UtcNow)
+                LeaveDate = DateOnly.FromDateTime(DateTime.UtcNow),
+                WorkPhoneNumber = "789",
+                PersonalPhoneNumber = "012"
             };
             var dtos = new List<EmployeeDTO> { dto };
 
@@ -162,7 +169,12 @@ namespace UnitTests.Repositories
             // Assert
             var updated = await _context.Employees.FirstAsync(e => e.EntraId == entraId);
             Assert.Equal("NewFirst", updated.FirstName);
+            Assert.Equal("NewLast", updated.LastName);
             Assert.Equal("new@domain.com", updated.Email);
+            Assert.Equal(dto.HireDate, updated.HireDate);
+            Assert.Equal(dto.LeaveDate, updated.LeaveDate);
+            Assert.Equal("789", updated.WorkPhoneNumber);
+            Assert.Equal("012", updated.PersonalPhoneNumber);
             Assert.Equal(originalCreated, updated.CreatedAt);
             Assert.True(updated.UpdatedAt > originalCreated, "UpdatedAt should be refreshed");
         }

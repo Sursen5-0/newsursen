@@ -141,10 +141,11 @@ namespace Infrastructure.Persistance.Repositories
 
             var entraIds = dtos.Select(d => d.EntraId).ToHashSet();
 
-            var existingEntities = await _db.Employees
+            var existingEntities = _db.Employees
                 .Where(e => entraIds.Contains(e.EntraId))
+                .ToList()
                 .GroupBy(e => e.EntraId)
-                .ToDictionaryAsync(g => g.Key, g => g.First());
+                .ToDictionary(g => g.Key, g => g.First());
 
             var now = DateTime.UtcNow;
 

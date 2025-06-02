@@ -12,7 +12,7 @@ public partial class Employee : BaseEntity
     public string LastName { get; set; } = null!;
     public string Email { get; set; } = null!;
 
-    public DateOnly? HireDate { get; set; }
+    public DateTime? HireDate { get; set; }
 
     public DateOnly? LeaveDate { get; set; }
 

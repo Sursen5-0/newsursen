@@ -27,7 +27,8 @@ namespace Infrastructure.Entra.Mappers
 
                 BusinessUnitId = Guid.Empty,
                 SeveraId = null,
-                FlowCaseId = null
+                FlowCaseId = null,
+                HireDate = model.HireDate
             };
         }
     }

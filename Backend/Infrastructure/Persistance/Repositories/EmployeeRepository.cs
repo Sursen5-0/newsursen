@@ -70,7 +70,7 @@ namespace Infrastructure.Persistance.Repositories
             var employees = _db.Employees.Where(x => employeeEmails.Contains(x.Email));
             foreach (var employee in employees)
             {
-                var id = employeeDTOs.FirstOrDefault(x => x.Email == employee.Email)?.Id;
+                var id = employeeDTOs.FirstOrDefault(x => x.Email.ToLower() == employee.Email.ToLower())?.Id;
                 if(id == null)
                 {
                     _logger.LogWarning("Unable to find email for user with email: {Email}", employee.Email);

@@ -50,7 +50,7 @@ namespace Infrastructure.FlowCase.Models
     public class FlowcaseSkillModel
     {
         [JsonPropertyName("_id")]
-        public string SkillId { get; set; } = string.Empty;
+        public string SkillId { get; set; } = null!;
 
         [JsonPropertyName("tags")]
         public FlowcaseSkillName Tags { get; set; } = new();

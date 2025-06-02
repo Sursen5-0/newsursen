@@ -5,11 +5,16 @@ using Domain.Interfaces.Services;
 
 namespace HangFire.Jobs
 {
-    public class FlowCaseJob(ISkillService skillService)
+    public class FlowCaseJob(ISkillService skillService, IEmployeeService employeeService)
     {
-        public async Task SynchronizeSkills()
+        public async Task SynchronizeSkillsToSkillsTable()
         {
             await skillService.SynchronizeSkillsFromFlowcaseAsync();
+        }
+
+        public async Task SynchronizeEmployeesWithFlowcaseIdsAsync()
+        {
+            await employeeService.SynchronizeEmployeesWithFlowcaseIdsAsync();
         }
     }
 }

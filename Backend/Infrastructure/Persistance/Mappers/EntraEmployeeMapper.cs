@@ -21,6 +21,8 @@ namespace Infrastructure.Persistance.Mappers
                 LeaveDate = dto.LeaveDate,
                 WorkPhoneNumber = dto.WorkPhoneNumber,
                 PersonalPhoneNumber = dto.PersonalPhoneNumber,
+                FlowCaseId = dto.FlowCaseId,
+                FlowCaseCVId = dto.CvId,
             };
         }
 
@@ -38,6 +40,8 @@ namespace Infrastructure.Persistance.Mappers
                 LeaveDate = entity.LeaveDate,
                 WorkPhoneNumber = entity.WorkPhoneNumber,
                 PersonalPhoneNumber = entity.PersonalPhoneNumber,
+                FlowCaseId = entity.FlowCaseId,
+                CvId = entity.FlowCaseCVId,
             };
         }
     }

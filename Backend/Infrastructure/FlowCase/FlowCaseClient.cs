@@ -131,7 +131,7 @@ namespace Infrastructure.FlowCase
             int offset = 0;
             int limit = 500;
             var uri = $"api/v2/users/search?from={offset}&size={limit}&sort_by=country&deactivated=false";
-            var response = await GetEntity<List<FlowcaseUserModel>>(uri);
+            var response = await MakeRequest<List<FlowcaseUserModel>>(uri);
             if (!response.IsSuccess)
             {
                 throw new Exception($"Failed to retrieve users: {response.Message}");
@@ -155,17 +155,10 @@ namespace Infrastructure.FlowCase
 
         }
 
-
-
         public async Task<FlowcaseReturnModel<FlowcaseUserModel>> GetUser(string email)
         {
             var uri = $"/api/v1/users/find?email={Uri.EscapeDataString(email)}";
             return await MakeRequest<FlowcaseUserModel>(uri);
-        }
-
-        private async Task<FlowcaseReturnModel<T>> GetEntity<T>(string path)
-        {
-            return await MakeRequest<T>(path);
         }
         
         private async Task<FlowcaseReturnModel<T>> MakeRequest<T>(string path)

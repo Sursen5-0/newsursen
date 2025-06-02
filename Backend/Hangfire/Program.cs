@@ -147,8 +147,11 @@ using (var scope = app.Services.CreateScope())
         () => scope.ServiceProvider.GetRequiredService<EntraJobs>().GetAllEmployeesEntra(),
         Cron.Daily);
     jobManager.AddOrUpdate(
-        "SynchronizeSkills",
-        () => scope.ServiceProvider.GetRequiredService<FlowCaseJob>().SynchronizeSkills(), "0 0 31 2 *");
+        "SynchronizeSkillsToSkillsTable",
+        () => scope.ServiceProvider.GetRequiredService<FlowCaseJob>().SynchronizeSkillsToSkillsTable(), "0 0 31 2 *");
+    jobManager.AddOrUpdate(
+        "SynchronizeEmployeesWithFlowcaseIdsAsync",
+        () => scope.ServiceProvider.GetRequiredService<FlowCaseJob>().SynchronizeEmployeesWithFlowcaseIdsAsync(), "0 0 31 2 *");
 }
 
 app.UseHangfireDashboard();

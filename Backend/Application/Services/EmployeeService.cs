@@ -211,67 +211,118 @@ namespace Application.Services
             }
         }
 
-        public async Task SynchronizeEmployeeSkillsFromFlowcaseAsync()
+        public async Task SynchronizeEmployeesWithFlowcaseIdsAsync()
         {
-
-            _logger.LogInformation("Synchronizing employee skills from Flowcase");
-            var employees = await _employeeRepository.GetEmployees();
+            _logger.LogInformation("Synchronizing employees with Flowcase IDs and CV IDs");
+            var employees = await _flowcaseClient.GetUsersAsync();
+            if (employees == null || !employees.Any())
+            {
+                _logger.LogWarning("No employees found in Flowcase, skipping synchronization.");
+                return;
+            }
+            var existingEmployees = await _employeeRepository.GetEmployees();
+            var sortedEmployees = existingEmployees.Where(x => x.FlowCaseId == null);
+/*            foreach (var employee in existingEmployees)
+            {
+                _logger.LogInformation($"Existing employee: {employee.Email}, {employee.FirstName} {employee.LastName}");
+            }*/
+            var updateList = new List<EmployeeDTO>();
             foreach (var employee in employees)
             {
-                var skillsDto = await _flowcaseClient.GetSkillsFromCVAsync(employee.FlowCaseId, employee.CvId);
-                if (skillsDto == null || !skillsDto.Any())
+                if (employee.UserId == null)
                 {
-                    _logger.LogWarning($"No skills found for employee {employee.Id}, skipping synchronization.");
+                    _logger.LogWarning($"Employee {employee.Name} has an has an empty FlowCase ID, skipping.");
                     continue;
                 }
-                /*foreach (var skill in skillsDto)
+                if (employee.DefaultCvId == null)
                 {
-                    if (!employee.SkillName.Any(s => s.SkillName == skill.SkillName))
+                    _logger.LogWarning($"Employee {employee.Name}({employee.UserId} has an empty CV ID, skipping.");
+                    continue;
+                }
+                // Check if the employee already exists in the database
+                if (!existingEmployees.Any(f => f.FlowCaseId == employee.UserId && f.CvId == employee.DefaultCvId))
+                {
+                    // Update existing employee
+                    var existingEmployee = existingEmployees.FirstOrDefault(e => e.Email == employee.Email);
+                    if(existingEmployee == null)
                     {
-                        _logger.LogInformation($"Adding skill {skill.SkillName} to employee {employee.Id}");
-                        await _employeeRepository.InsertEmployeeSkillAsync(employee.Id, skill);
+                        _logger.LogWarning($"No existing employee found for {employee.Name} with email {employee.Email}, skipping.");
+                        continue;
                     }
-                    else
-                    {
-                        _logger.LogInformation($"Skill {skill.SkillName} already exists for employee {employee.Id}, skipping addition.");
-                    }
-                }*/
+                    existingEmployee.FlowCaseId = employee.UserId;
+                    existingEmployee.CvId = employee.DefaultCvId;
+                    updateList.Add(existingEmployee);
+                }
+
             }
 
+            if (updateList.Any())
+            {
+                await _employeeRepository.UpdateEmployeesAsync(updateList);
+            }
         }
 
-        /*        public async Task MapEmployeeSkillsAsync()
+        /*        public async Task SynchronizeEmployeeSkillsFromFlowcaseAsync()
                 {
-                    _logger.LogInformation("Mapping employee skills");
+
+                    _logger.LogInformation("Synchronizing employee skills from Flowcase");
                     var employees = await _employeeRepository.GetEmployees();
-                    var employeeSkills = new List<EmployeeSkillDTO>();
                     foreach (var employee in employees)
                     {
-                        var skills = await _flowcaseClient.GetSkillsFromCVAsync(employee.ExternalId, employee.CVId);
-                        if (skills == null || !skills.Any())
+                        var skillsDto = await _flowcaseClient.GetSkillsFromCVAsync(employee.FlowCaseId, employee.CvId);
+                        if (skillsDto == null || !skillsDto.Any())
                         {
-                            _logger.LogWarning($"No skills found for employee {employee.Name}, skipping mapping.");
+                            _logger.LogWarning($"No skills found for employee {employee.Id}, skipping synchronization.");
                             continue;
                         }
-                        foreach (var skill in skills)
+                        foreach (var skill in skillsDto)
                         {
-                            if (!employee.Skills.Any(s => s.SkillName == skill.SkillName))
+                            if (!employee.SkillName.Any(s => s.SkillName == skill.SkillName))
                             {
-                                _logger.LogInformation($"Adding skill {skill.SkillName} to employee {employee.Name}");
-                                employeeSkills.Add(new EmployeeSkillDTO
-                                {
-                                    EmployeeId = employee.Id,
-                                    SkillName = skill.SkillName,
-                                    Proficiency = skill.Proficiency
-                                });
+                                _logger.LogInformation($"Adding skill {skill.SkillName} to employee {employee.Id}");
+                                await _employeeRepository.InsertEmployeeSkillAsync(employee.Id, skill);
                             }
                             else
                             {
-                                _logger.LogInformation($"Skill {skill.SkillName} already exists for employee {employee.Name}, skipping addition.");
+                                _logger.LogInformation($"Skill {skill.SkillName} already exists for employee {employee.Id}, skipping addition.");
                             }
                         }
                     }
-                    await _employeeRepository.
-                }*/
+
+                }
+
+                       public async Task MapEmployeeSkillsAsync()
+                        {
+                            _logger.LogInformation("Mapping employee skills");
+                            var employees = await _employeeRepository.GetEmployees();
+                            var employeeSkills = new List<EmployeeSkillDTO>();
+                            foreach (var employee in employees)
+                            {
+                                var skills = await _flowcaseClient.GetSkillsFromCVAsync(employee.ExternalId, employee.CVId);
+                                if (skills == null || !skills.Any())
+                                {
+                                    _logger.LogWarning($"No skills found for employee {employee.Name}, skipping mapping.");
+                                    continue;
+                                }
+                                foreach (var skill in skills)
+                                {
+                                    if (!employee.Skills.Any(s => s.SkillName == skill.SkillName))
+                                    {
+                                        _logger.LogInformation($"Adding skill {skill.SkillName} to employee {employee.Name}");
+                                        employeeSkills.Add(new EmployeeSkillDTO
+                                        {
+                                            EmployeeId = employee.Id,
+                                            SkillName = skill.SkillName,
+                                            Proficiency = skill.Proficiency
+                                        });
+                                    }
+                                    else
+                                    {
+                                        _logger.LogInformation($"Skill {skill.SkillName} already exists for employee {employee.Name}, skipping addition.");
+                                    }
+                                }
+                            }
+                            await _employeeRepository.
+                        }*/
     }
 }

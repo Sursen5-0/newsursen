@@ -1,8 +1,8 @@
 ﻿using Domain.Interfaces.ExternalClients;
 using Domain.Models;
 using Infrastructure.Common;
+using Infrastructure.Entra.Mappers;
 using Infrastructure.Entra.Models;
-using Infrastructure.Persistance.Mappers;
 using Infrastructure.Persistance.Models;
 using Microsoft.Extensions.Logging;
 using System.Net.Http;

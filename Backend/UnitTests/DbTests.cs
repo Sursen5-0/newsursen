@@ -37,7 +37,7 @@ namespace UnitTests
                 FirstName = "Test",
                 LastName = "Test",
                 FlowCaseId = "test",
-                HireDate = DateOnly.MinValue,
+                HireDate = DateTime.MinValue,
                 HubSpotId = "test",
                 LeaveDate = DateOnly.MinValue,
                 Id = Guid.NewGuid(),

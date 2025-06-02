@@ -108,14 +108,14 @@ namespace UnitTests.Repositories
         [Fact]
         public async Task UpdateEmployeesAsync_NoErrorLog_WhenEntityNotFound()
         {
-            // Arrange: no existing employees in DB
+            // Arrange
             var dto = new EmployeeDTO { EntraId = Guid.NewGuid(), FirstName = "New" };
             var dtos = new List<EmployeeDTO> { dto };
 
             // Act
             await sut.UpdateEmployeesAsync(dtos);
 
-            // Assert: Since there is no matching Employee in the DB, we should not log any error
+            // Assert
             _logger.Verify(
                 x => x.Log(
                     LogLevel.Error,

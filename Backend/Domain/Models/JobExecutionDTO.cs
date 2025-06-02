@@ -14,5 +14,6 @@ namespace Domain.Models
         public DateTime CompletionDate { get; set; }
         public string? ErrorMessage { get; set; }
         public bool IsSuccess { get; set; }
+        public Exception? Exception { get; set; }
     }
 }

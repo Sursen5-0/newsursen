@@ -14,8 +14,9 @@ namespace Hangfire.Jobs
 
         public async Task GetAllEmployeesEntra()
         {
-            var result = await JobLogger.LogJobExecutionAsync(MethodBase.GetCurrentMethod()?.Name ?? "Unknown method", _employeeService.SynchronizeEmployeesAsync());
+            var result = await JobLogger.LogJobExecutionAsync(nameof(GetAllEmployeesEntra), _employeeService.SynchronizeEmployeesAsync());
             await _jobExecutionRepository.InsertJobExecution(result);
+            JobLogger.ThrowIfFailed(result);
 
         }
     }

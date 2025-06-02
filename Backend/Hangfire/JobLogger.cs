@@ -19,13 +19,23 @@ namespace Hangfire
             }
             catch (Exception ex)
             {
-                jobExecution.ErrorMessage = ex.Message;
+                jobExecution.ErrorMessage = ex.Message.ToString();
                 jobExecution.IsSuccess = false;
-                throw;
+                jobExecution.Exception = ex;
             }
-            jobExecution.CompletionDate = DateTime.UtcNow;
+            finally
+            {
+                jobExecution.CompletionDate = DateTime.UtcNow;
+            }
             return jobExecution;
 
+        }
+        public static void ThrowIfFailed(JobExecutionDTO jobExecution)
+        {
+            if (!jobExecution.IsSuccess && jobExecution.Exception != null)
+            { 
+                throw jobExecution.Exception;
+            }
         }
     }
 }

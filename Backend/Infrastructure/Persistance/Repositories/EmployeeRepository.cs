@@ -140,35 +140,45 @@ namespace Infrastructure.Persistance.Repositories
             if (dtos == null) throw new ArgumentNullException(nameof(dtos));
 
             var entraIds = dtos.Select(d => d.EntraId).ToHashSet();
-            var existingEntities = await _db.Employees
-                .Where(e => entraIds.Contains(e.EntraId))
-                .ToDictionaryAsync(e => e.EntraId);
 
-            var updatedEntitiesDict = dtos
-                .Select(d => d.ToEntity())
-                .ToDictionary(e => e.EntraId);
+            var existingList = await _db.Employees
+                .Where(e => entraIds.Contains(e.EntraId))
+                .ToListAsync();
+
+            var existingEntities = existingList
+                .GroupBy(e => e.EntraId)
+                .ToDictionary(g => g.Key, g => g.First());
 
             var now = DateTime.UtcNow;
+
+            foreach (var dto in dtos)
+            {
+                if (!existingEntities.ContainsKey(dto.EntraId))
+                {
+                    _logger.LogError(
+                        "Employee to update not found. EntraId: {EntraId}",
+                        dto.EntraId);
+                }
+            }
+
             foreach (var kvp in existingEntities)
             {
                 var entraId = kvp.Key;
                 var existingEntity = kvp.Value;
 
-                if (updatedEntitiesDict.TryGetValue(entraId, out var updatedEntity))
-                {
-                    updatedEntity.Id = existingEntity.Id;
-                    updatedEntity.CreatedAt = existingEntity.CreatedAt;
-                    updatedEntity.UpdatedAt = now;
+                var updatedEntity = dtos
+                    .First(d => d.EntraId == entraId)
+                    .ToEntity();
 
-                    _db.Entry(existingEntity).CurrentValues.SetValues(updatedEntity);
-                }
-                else
-                {
-                    _logger.LogError("Employee intended for update not found in input list. EntraId: {EntraId}", entraId);
-                }
+                updatedEntity.Id = existingEntity.Id;
+                updatedEntity.CreatedAt = existingEntity.CreatedAt;
+                updatedEntity.UpdatedAt = now;
+
+                _db.Entry(existingEntity).CurrentValues.SetValues(updatedEntity);
             }
 
             await _db.SaveChangesAsync();
         }
+
     }
 }

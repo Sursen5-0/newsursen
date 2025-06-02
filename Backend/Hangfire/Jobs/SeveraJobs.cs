@@ -1,35 +1,46 @@
 ﻿using Application.Services;
+using Domain.Interfaces.Repositories;
 using Domain.Interfaces.Services;
 using Domain.Models;
 using Infrastructure.Persistance.Models;
 using Infrastructure.Severa;
 using Infrastructure.Severa.Models;
+using System.Reflection;
 
 namespace Hangfire.Jobs
 {
-    public class SeveraJobs(IEmployeeService employeeService)
+    public class SeveraJobs(IEmployeeService _employeeService, IJobExecutionRepository _jobExecutionRepository)
     {
         public async Task SynchronizeContracts()
         {
-            await employeeService.SynchronizeContracts();
+            var result = await JobLogger.LogJobExecutionAsync(MethodBase.GetCurrentMethod()?.Name ?? "Unknown method", _employeeService.SynchronizeContracts());
+            _jobExecutionRepository.InsertJobExecution(result);
+
         }
         public async Task SynchronizeEmployees()
         {
-            await employeeService.SynchronizeUnmappedSeveraIds();
+            var result = await JobLogger.LogJobExecutionAsync(MethodBase.GetCurrentMethod()?.Name ?? "Unknown method", _employeeService.SynchronizeUnmappedSeveraIds());
+            _jobExecutionRepository.InsertJobExecution(result);
+
         }
 
         public async Task SynchronizeAbsence()
         {
-            await employeeService.SynchronizeAbsence();
+            var result = await JobLogger.LogJobExecutionAsync(MethodBase.GetCurrentMethod()?.Name ?? "Unknown method", _employeeService.SynchronizeAbsence());
+            _jobExecutionRepository.InsertJobExecution(result);
         }
 
         public async Task SynchronizeProjects()
         {
-            await employeeService.SynchronizeProjects();
+            var result = await JobLogger.LogJobExecutionAsync(MethodBase.GetCurrentMethod()?.Name ?? "Unknown method", _employeeService.SynchronizeProjects());
+            _jobExecutionRepository.InsertJobExecution(result);
+
         }
         public async Task SynchronizePhases()
         {
-            await employeeService.SynchronizePhases();
+            var result = await JobLogger.LogJobExecutionAsync(MethodBase.GetCurrentMethod()?.Name ?? "Unknown method", _employeeService.SynchronizePhases());
+            _jobExecutionRepository.InsertJobExecution(result);
+
         }
 
     }

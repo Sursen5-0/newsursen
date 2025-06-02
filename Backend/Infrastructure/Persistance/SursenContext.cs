@@ -34,6 +34,7 @@ public partial class SursenContext : DbContext
 
     public virtual DbSet<Project> Projects { get; set; }
     public virtual DbSet<ProjectPhase> ProjectPhases { get; set; }
+    public virtual DbSet<JobExecution> JobExecutions { get; set; }
 
     public virtual DbSet<ProjectEmployee> ProjectEmployees { get; set; }
 

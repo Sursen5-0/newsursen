@@ -62,20 +62,21 @@ namespace Infrastructure.Severa
             _token = responseBody.AccessToken;
             return _token;
         }
-        public async Task<EmployeeContractDTO> GetWorkContractByUserId(Guid userId)
+        public async Task<EmployeeContractDTO?> GetWorkContractByUserId(Guid userId)
         {
             var response = await GetEntity<SeveraWorkContract>($"users/{userId}/workcontracts/current");
             if (!response.IsSuccess)
             {
                 var message = $"Severa client was unable to get workcontract, returned HTTP {response.StatusCode}";
-                _logger.LogError(message);
-                throw new HttpRequestException(message);
+                _logger.LogWarning(message);
+                return null;
             }
             else if (response.Data == null)
             {
                 var message = $"Severa was able to get workcontract, but returned empty response";
-                _logger.LogError(message);
-                throw new HttpRequestException(message);
+                _logger.LogWarning(message);
+                return null;
+
             }
             var contract = response.Data.ToDto(userId);
             return contract;
@@ -192,7 +193,7 @@ namespace Infrastructure.Severa
             bool moreData;
             int pageCount = 0;
 
-            path = path + "&rowCount=50";
+            path = path + "&rowCount=100";
             do
             {
                 if(maxPages.HasValue && pageCount > maxPages)

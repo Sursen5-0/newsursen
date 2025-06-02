@@ -39,8 +39,11 @@ namespace IntegrationsTests
         [Fact]
         public async Task SeveraClient_CallingGetWorkContractByUserIdWithNoId_ReturnsError()
         {
-            // Act & Assert
-            await Assert.ThrowsAsync<HttpRequestException>(async () => await _sut.GetWorkContractByUserId(Guid.Empty));
+            // Act
+            var result = await _sut.GetWorkContractByUserId(Guid.Empty);
+
+            // Assert
+            Assert.Null(result);
         }
         [Fact]
         public async Task SeveraClient_CallingGetWorkContractByUserIdWithValidId_WorkContract()

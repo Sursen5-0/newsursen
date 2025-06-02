@@ -148,16 +148,6 @@ namespace Infrastructure.Persistance.Repositories
 
             var now = DateTime.UtcNow;
 
-            foreach (var dto in dtos)
-            {
-                if (!existingEntities.ContainsKey(dto.EntraId))
-                {
-                    _logger.LogError(
-                        "Employee to update not found. EntraId: {EntraId}",
-                        dto.EntraId);
-                }
-            }
-
             foreach (var kvp in existingEntities)
             {
                 var entraId = kvp.Key;

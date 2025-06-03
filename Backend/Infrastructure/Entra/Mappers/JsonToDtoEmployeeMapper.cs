@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Domain.Models;
-using Infrastructure.Persistance.Models;
+using Infrastructure.Entra.Models;
 
 namespace Infrastructure.Entra.Mappers
 {

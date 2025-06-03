@@ -105,7 +105,7 @@ namespace IntegrationsTests
         public async Task SeveraClient_GetAbsence_ReturnsResponse()
         {
             // Act
-            var result = await _sut.GetAbsence(3);
+            var result = await _sut.GetAbsence(maxpages: 3);
 
             // Assert
             Assert.NotNull(result);
@@ -115,7 +115,7 @@ namespace IntegrationsTests
         public async Task SeveraClient_GetProjects_ReturnsResponse()
         {
             // Act
-            var result = await _sut.GetProjects(3);
+            var result = await _sut.GetProjects(maxpages: 3);
 
             // Assert
             Assert.NotNull(result);

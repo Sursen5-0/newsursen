@@ -11,12 +11,15 @@ using System.Threading.Tasks;
 
 namespace Application.Services
 {
-    public class EmployeeService(ISeveraClient _severaClient, IEntraClient _entraClient, IEmployeeRepository _employeeRepository, IProjectRepository _projectRepository, ILogger<EmployeeService> _logger) : IEmployeeService
+    public class EmployeeService(ISeveraClient _severaClient, IEntraClient _entraClient, 
+        IEmployeeRepository _employeeRepository, IProjectRepository _projectRepository, 
+        ILogger<EmployeeService> _logger, IJobExecutionRepository _jobExecutionRepo) : IEmployeeService
     {
         public async Task SynchronizeAbsence()
         {
             _logger.LogInformation($"Start synchronizing of absence");
-            var absences = await _severaClient.GetAbsence();
+            var latestSuccessfullUpdate = await _jobExecutionRepo.GetLatestSuccessfulJobExecutionByName(nameof(SynchronizeAbsence));
+            var absences = await _severaClient.GetAbsence(latestSuccessfullUpdate);
             if (absences == null || !absences.Any())
             {
                 _logger.LogWarning($"_severaClient.GetAbsence returned empty, not continuing syncronization of absence");
@@ -96,7 +99,9 @@ namespace Application.Services
             var projects = await _projectRepository.GetProjects();
             var dbExternalProjectIds = new HashSet<Guid>(projects.Select(x => x.ExternalId));
             var dbExternalPhaseIds = new HashSet<Guid>(dbPhases.Select(x => x.ExternalId));
-            var phases = await _severaClient.GetPhases(dbExternalProjectIds);
+            var latestSuccessfullUpdate = await _jobExecutionRepo.GetLatestSuccessfulJobExecutionByName(nameof(SynchronizePhases));
+
+            var phases = await _severaClient.GetPhases(dbExternalProjectIds, latestSuccessfullUpdate);
 
             var phaseArray = phases.ToArray();
             _logger.LogInformation("Synchronizing on {0} projects phases", phaseArray.Length);
@@ -133,7 +138,9 @@ namespace Application.Services
             var employees = await _employeeRepository.GetEmployees();
 
             _logger.LogInformation($"Getting data from Severa...");
-            var projects = await _severaClient.GetProjects();
+            var latestSuccessfullUpdate = await _jobExecutionRepo.GetLatestSuccessfulJobExecutionByName(nameof(SynchronizeProjects));
+
+            var projects = await _severaClient.GetProjects(latestSuccessfullUpdate);
             _logger.LogInformation("Synchronizing on {projects.Count()} projects", projects.Count());
             var projectArray = projects.ToArray();
 

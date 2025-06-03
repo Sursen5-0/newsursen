@@ -2,7 +2,7 @@
 using Domain.Models;
 using Infrastructure.Persistance.Models;
 
-namespace Infrastructure.Persistance.Mappers
+namespace Infrastructure.Entra.Mappers
 {
     public static class EntraEmployeeMapper
     {

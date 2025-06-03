@@ -35,5 +35,6 @@ namespace Domain.Models
 
         public Guid? ManagerId { get; set; }
         public Guid? EntraManagerId { get; set; }
+        public string? UserPrincipalName { get; set; }
     }
 }

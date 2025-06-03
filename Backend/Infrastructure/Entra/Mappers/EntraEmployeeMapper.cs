@@ -23,6 +23,7 @@ namespace Infrastructure.Entra.Mappers
                 PersonalPhoneNumber = dto.PersonalPhoneNumber,
                 SeveraId = dto.SeveraId,
                 ManagerId = dto.ManagerId,
+                UserPrincipalName = dto.UserPrincipalName
             };
         }
 
@@ -41,7 +42,8 @@ namespace Infrastructure.Entra.Mappers
                 WorkPhoneNumber = entity.WorkPhoneNumber,
                 PersonalPhoneNumber = entity.PersonalPhoneNumber,
                 SeveraId = entity.SeveraId,
-                ManagerId = entity.ManagerId
+                ManagerId = entity.ManagerId,
+                UserPrincipalName = entity.UserPrincipalName
             };
         }
     }

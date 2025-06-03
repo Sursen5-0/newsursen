@@ -30,6 +30,8 @@ namespace Infrastructure.Entra.Models
         [JsonPropertyName("mobilePhone")]
         public string? PersonalPhoneNumber { get; set; }
 
+        [JsonPropertyName("userPrincipalName")]
+        public string? UserPrincipalName { get; set; }
 
         [JsonPropertyName("manager")]
         public EntraManager? Manager { get; set; }
@@ -37,7 +39,7 @@ namespace Infrastructure.Entra.Models
         internal class EntraManager
         {
             [JsonPropertyName("id")]
-            public Guid Id { get; set; }
+            public Guid? Id { get; set; }
 
             [JsonPropertyName("displayName")]
             public string? DisplayName { get; set; }

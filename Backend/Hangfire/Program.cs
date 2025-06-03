@@ -16,7 +16,7 @@ using Serilog;
 using Serilog.Events;
 using System.Net.Http.Headers;
 using Infrastructure.Common;
-using HangFire.Jobs;
+using Microsoft.Extensions.Configuration;
 
 var token = Environment.GetEnvironmentVariable("DOPPLER_KEY");
 var environment = Environment.GetEnvironmentVariable("ENVIRONMENT");
@@ -57,16 +57,15 @@ builder.Services.AddSerilog();
 
 builder.Services.AddHangfire(config =>
 {
-    config.UseInMemoryStorage();
     config.UseSerilogLogProvider();
 });
 builder.Services.AddHangfireServer();
 
 builder.Services.AddHttpClient();
-builder.Services.AddScoped<TestJob>();
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
+builder.Services.AddScoped<IJobExecutionRepository, JobExecutionRepository>();
 builder.Services.AddScoped<SeveraJobs>();
 builder.Services.AddScoped<EntraJobs>();
 builder.Services.AddScoped<FlowCaseJob>();
@@ -87,7 +86,7 @@ builder.Services.AddScoped<ISecretClient, DopplerClient>(provider =>
     httpClient.BaseAddress = new Uri("https://api.doppler.com/v3/");
     return new DopplerClient(httpClient, token, environment);
 });
-builder.Services.AddHttpClient<ISeveraClient,SeveraClient>(client =>
+builder.Services.AddHttpClient<ISeveraClient, SeveraClient>(client =>
 {
     client.BaseAddress = new Uri("https://api.severa.visma.com/rest-api/v1.0/");
 })
@@ -121,14 +120,17 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
-    var jobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
+    var secretClient = scope.ServiceProvider.GetRequiredService<ISecretClient>();
+    var hangfireConnection = secretClient.GetSecretAsync("HANGFIRE_CONNECTIONSTRING").Result;
 
-    var testJob = scope.ServiceProvider.GetRequiredService<TestJob>();
-    jobManager.AddOrUpdate("my-recurring-job", () => testJob.WriteTest(), Cron.Minutely);
+    GlobalConfiguration.Configuration
+        .UseSqlServerStorage(hangfireConnection)
+        .UseSerilogLogProvider();
+    var jobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
 
     jobManager.AddOrUpdate(
         "SynchronizeEmployees",
-        () => scope.ServiceProvider.GetRequiredService<SeveraJobs>().SynchronizeEmployees(),"0 0 31 2 *");
+        () => scope.ServiceProvider.GetRequiredService<SeveraJobs>().SynchronizeEmployees(), "0 0 31 2 *");
     jobManager.AddOrUpdate(
         "SynchronizeContracts",
         () => scope.ServiceProvider.GetRequiredService<SeveraJobs>().SynchronizeContracts(), "0 0 31 2 *");

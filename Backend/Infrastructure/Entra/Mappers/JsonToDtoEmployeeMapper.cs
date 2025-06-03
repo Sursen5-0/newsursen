@@ -11,6 +11,7 @@ namespace Infrastructure.Entra.Mappers
         {
             if (model == null) throw new ArgumentNullException(nameof(model));
 
+
             return new EmployeeDTO
             {
                 EntraId = Guid.TryParse(model.Id, out var g) ? g : Guid.Empty,
@@ -22,13 +23,15 @@ namespace Infrastructure.Entra.Mappers
                             ? DateOnly.FromDateTime(model.LeaveDate.Value)
                             : null,
 
-                WorkPhoneNumber = model.BusinessPhones?.FirstOrDefault(), 
+                WorkPhoneNumber = model.BusinessPhones?.FirstOrDefault(),
                 PersonalPhoneNumber = model.PersonalPhoneNumber,
 
                 BusinessUnitId = Guid.Empty,
                 SeveraId = null,
                 FlowCaseId = null,
-                HireDate = model.HireDate
+                HireDate = model.HireDate,
+                EntraManagerId = model.Manager?.Id,
+                UserPrincipalName = model.UserPrincipalName
             };
         }
     }

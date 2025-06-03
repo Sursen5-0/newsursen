@@ -32,6 +32,7 @@ public partial class Employee : BaseEntity
 
     public string? FlowCaseId { get; set; }
     public string? FlowCaseCVId { get; set; }
+    public string? UserPrincipalName { get; set; } 
 
     public virtual ICollection<Absence> Absences { get; set; } = new List<Absence>();
 

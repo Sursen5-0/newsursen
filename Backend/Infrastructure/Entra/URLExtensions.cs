@@ -19,20 +19,21 @@ namespace Infrastructure.Entra
 
         public static readonly string[] UserSelectFields =
         {
-            "id","accountEnabled","ageGroup","businessPhones","city","companyName","country",
-            "createdDateTime","creationType","department","displayName","employeeHireDate",
-            "employeeId","employeeLeaveDateTime","employeeType","givenName","jobTitle",
-            "mail","mobilePhone","postalCode","surname","userPrincipalName","userType"
+            "id", "accountEnabled", "ageGroup", "businessPhones", "city", "companyName", "country",
+            "createdDateTime", "creationType", "department", "displayName", "employeeHireDate",
+            "employeeId", "employeeLeaveDateTime", "employeeType", "givenName", "jobTitle",
+            "mail", "mobilePhone", "postalCode", "surname", "userPrincipalName", "userType", "externalUserState"
         };
 
         public static readonly string[] UserFilters =
         {
+            "userType eq 'Member'",
             "accountEnabled eq true",
-            "endswith(mail, '@twoday.com')",
-            "jobTitle ne null"
+            "country eq 'Denmark'"
         };
 
         public const bool IncludeCount = true;
+        private const string ExpandClause = "$expand=manager($select=id,displayName)";
 
 
         public static string GetTokenEndpoint(string tenantId) =>
@@ -54,6 +55,8 @@ namespace Infrastructure.Entra
         public static string BuildUsersEndpoint()
         {
             var query = new List<string>();
+
+            query.Add(ExpandClause);
 
             if (UserSelectFields.Length > 0)
                 query.Add("$select=" + string.Join(",", UserSelectFields));

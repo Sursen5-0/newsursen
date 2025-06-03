@@ -5,9 +5,9 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace Infrastructure.Persistance.Models
+namespace Infrastructure.Entra.Models
 {
-    public class EntraEntityPage<T>
+    public class GraphUsersPage<T>
     {
         [JsonPropertyName("value")]
         public List<T>? Value { get; set; }

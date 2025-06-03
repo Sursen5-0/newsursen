@@ -4,6 +4,7 @@ using Infrastructure.Persistance;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(SursenContext))]
-    partial class SursenContextModelSnapshot : ModelSnapshot
+    [Migration("20250602141405_AddedJobExecutions")]
+    partial class AddedJobExecutions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -180,9 +183,6 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<string>("FlowCaseCVId")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("FlowCaseId")
                         .HasMaxLength(24)
                         .IsUnicode(false)
@@ -217,9 +217,6 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("(getdate())");
-
-                    b.Property<string>("UserPrincipalName")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("WorkPhoneNumber")
                         .HasMaxLength(20)
@@ -537,13 +534,6 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("getdate()");
-
-                    b.Property<string>("ExternalId")
-                        .IsRequired()
-                        .HasMaxLength(24)
-                        .IsUnicode(false)
-                        .HasColumnType("char(24)")
-                        .IsFixedLength();
 
                     b.Property<string>("Name")
                         .IsRequired()

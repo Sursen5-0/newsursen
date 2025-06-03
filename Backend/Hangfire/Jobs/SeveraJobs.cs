@@ -1,35 +1,50 @@
 ﻿using Application.Services;
+using Domain.Interfaces.Repositories;
 using Domain.Interfaces.Services;
 using Domain.Models;
 using Infrastructure.Persistance.Models;
 using Infrastructure.Severa;
 using Infrastructure.Severa.Models;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace Hangfire.Jobs
 {
-    public class SeveraJobs(IEmployeeService employeeService)
+    public class SeveraJobs(IEmployeeService _employeeService, IJobExecutionRepository _jobExecutionRepository)
     {
         public async Task SynchronizeContracts()
         {
-            await employeeService.SynchronizeContracts();
+            var result = await JobLogger.LogJobExecutionAsync(nameof(SynchronizeContracts), _employeeService.SynchronizeContracts());
+            await _jobExecutionRepository.InsertJobExecution(result);
+            JobLogger.ThrowIfFailed(result);
         }
+
         public async Task SynchronizeEmployees()
         {
-            await employeeService.SynchronizeUnmappedSeveraIds();
+            var result = await JobLogger.LogJobExecutionAsync(nameof(SynchronizeEmployees), _employeeService.SynchronizeUnmappedSeveraIds());
+            await _jobExecutionRepository.InsertJobExecution(result);
+            JobLogger.ThrowIfFailed(result);
         }
 
         public async Task SynchronizeAbsence()
         {
-            await employeeService.SynchronizeAbsence();
+            var result = await JobLogger.LogJobExecutionAsync(nameof(SynchronizeAbsence), _employeeService.SynchronizeAbsence());
+            await _jobExecutionRepository.InsertJobExecution(result);
+            JobLogger.ThrowIfFailed(result);
         }
 
         public async Task SynchronizeProjects()
         {
-            await employeeService.SynchronizeProjects();
+            var result = await JobLogger.LogJobExecutionAsync(nameof(SynchronizeProjects), _employeeService.SynchronizeProjects());
+            await _jobExecutionRepository.InsertJobExecution(result);
+            JobLogger.ThrowIfFailed(result);
         }
+
         public async Task SynchronizePhases()
         {
-            await employeeService.SynchronizePhases();
+            var result = await JobLogger.LogJobExecutionAsync(nameof(SynchronizePhases), _employeeService.SynchronizePhases());
+            await _jobExecutionRepository.InsertJobExecution(result);
+            JobLogger.ThrowIfFailed(result);
         }
 
     }

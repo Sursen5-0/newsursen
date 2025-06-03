@@ -31,9 +31,14 @@ namespace UnitTests.Services
 
         public EmployeeServiceTests()
         {
-            _sut = new EmployeeService(_severaClientMock.Object, _entraClientMock.Object, _employeeRepoMock.Object, _projectRepoMock.Object, _loggerMock.Object, _JobExecutionRepoMock.Object);
-            _sut = new EmployeeService(_severaClientMock.Object, _entraClientMock.Object, _flowcaseClientMock.Object, _employeeRepoMock.Object, _skillRepositoryMock.Object, _projectRepoMock.Object, _loggerMock.Object);
-
+            _sut = new EmployeeService(_severaClientMock.Object, 
+                _entraClientMock.Object, 
+                _flowcaseClientMock.Object, 
+                _employeeRepoMock.Object, 
+                _skillRepositoryMock.Object, 
+                _projectRepoMock.Object, 
+                _loggerMock.Object, 
+                _JobExecutionRepoMock.Object);
         }
         [Fact]
         public async Task SynchronizeContracts_WithNoEmployees_DoesntCallGetWorkContractByUserId()

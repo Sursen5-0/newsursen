@@ -23,10 +23,9 @@ namespace Infrastructure.Entra.Mappers
                 PersonalPhoneNumber = dto.PersonalPhoneNumber,
                 SeveraId = dto.SeveraId,
                 ManagerId = dto.ManagerId,
-                UserPrincipalName = dto.UserPrincipalName
+                UserPrincipalName = dto.UserPrincipalName,
                 FlowCaseId = dto.FlowCaseId,
                 FlowCaseCVId = dto.CvId,
-                SeveraId = dto.SeveraId
             };
         }
 

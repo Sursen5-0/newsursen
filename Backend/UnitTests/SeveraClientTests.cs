@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Domain.Interfaces.ExternalClients;
+using Infrastructure.Common;
 using Infrastructure.Severa;
 using Infrastructure.Severa.Models;
 using Microsoft.Extensions.Logging;
@@ -30,7 +31,7 @@ namespace UnitTests
         {
             // Arrange
             var expectedToken = "mocked-access-token";
-            var tokenModel = new TokenReturnModel { AccessToken = expectedToken };
+            var tokenModel = new TokenResponse { AccessToken = expectedToken };
             var jsonContent = JsonSerializer.Serialize(tokenModel);
             var responseMessage = new HttpResponseMessage(HttpStatusCode.OK)
             {
@@ -89,7 +90,7 @@ namespace UnitTests
         public async Task GetToken_UsesCachedToken_OnSubsequentCalls()
         {
             // Arrange
-            var token = new TokenReturnModel { AccessToken = "once-token" };
+            var token = new TokenResponse { AccessToken = "once-token" };
             var json = JsonSerializer.Serialize(token);
 
             var mockHandler = new Mock<HttpMessageHandler>();

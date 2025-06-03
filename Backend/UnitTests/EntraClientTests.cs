@@ -30,7 +30,7 @@ namespace UnitTests
 
 
             var expectedToken = "mocked-access-token";
-            var tokenModel = new TokenReturnModel { AccessToken = expectedToken };
+            var tokenModel = new TokenResponse { AccessToken = expectedToken };
             var jsonContent = JsonSerializer.Serialize(tokenModel);
             var responseMessage = new HttpResponseMessage(HttpStatusCode.OK)
             {
@@ -74,7 +74,7 @@ namespace UnitTests
                 .ThrowsAsync(new Exception("secret error"));
 
             var expectedToken = "mocked-access-token";
-            var tokenModel = new TokenReturnModel { AccessToken = expectedToken };
+            var tokenModel = new TokenResponse { AccessToken = expectedToken };
             var jsonContent = JsonSerializer.Serialize(tokenModel);
             var responseMessage = new HttpResponseMessage(HttpStatusCode.OK)
             {

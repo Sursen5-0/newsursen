@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using System.Net;
 using System.Xml;
 using System.Collections;
+using Infrastructure.Common;
 
 namespace Infrastructure.Severa
 {
@@ -54,7 +55,7 @@ namespace Infrastructure.Severa
                 throw new HttpRequestException($"Severa client was unable to get token, returned HTTP {response.StatusCode}");
             }
             var jsonResponseBody = await response.Content.ReadAsStringAsync();
-            var responseBody = JsonSerializer.Deserialize<TokenReturnModel>(jsonResponseBody);
+            var responseBody = JsonSerializer.Deserialize<TokenResponse>(jsonResponseBody);
             if (responseBody == null)
             {
                 throw new SerializationException($"Unable to convert tokenresponse to expected format");

@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(SursenContext))]
-    [Migration("20250603083300_SkillUpdate")]
+    [Migration("20250603124515_SkillUpdate")]
     partial class SkillUpdate
     {
         /// <inheritdoc />
@@ -221,6 +221,9 @@ namespace Infrastructure.Migrations
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("(getdate())");
 
+                    b.Property<string>("UserPrincipalName")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("WorkPhoneNumber")
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
@@ -300,6 +303,33 @@ namespace Infrastructure.Migrations
                     b.HasIndex("SkillId");
 
                     b.ToTable("EmployeeSkills");
+                });
+
+            modelBuilder.Entity("Infrastructure.Persistance.Models.JobExecution", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CompletionDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsSuccess")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("JobName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("StartTimeDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("JobExecutions");
                 });
 
             modelBuilder.Entity("Infrastructure.Persistance.Models.LineItem", b =>

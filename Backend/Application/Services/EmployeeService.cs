@@ -297,7 +297,7 @@ namespace Application.Services
                 if (!existingEmployees.Any(f => f.FlowCaseId == employee.UserId && f.CvId == employee.DefaultCvId))
                 {
                     // Update existing employee
-                    var existingEmployee = existingEmployees.FirstOrDefault(e => e.Email == employee.Email);
+                    var existingEmployee = existingEmployees.FirstOrDefault(e => e.Email == employee.Email || e.UserPrincipalName == employee.Email);
                     if (existingEmployee == null)
                     {
                         _logger.LogWarning($"No existing employee found for {employee.Name} with email {employee.Email}, skipping.");
@@ -323,8 +323,8 @@ namespace Application.Services
 
             var updatedSkillsList = new List<EmployeeSkillDTO>(); // List to hold skills to update
             var newSkillsList = new List<EmployeeSkillDTO>(); // List to hold new skills to insert
-
-            foreach (var employee in employees) // Iterate over each employee
+            var usableEmployees = employees.Where(e => e.FlowCaseId != null && e.CvId != null).ToList(); // Filter employees with valid FlowCaseId and CvId
+            foreach (var employee in usableEmployees) // Iterate over each employee
             {
                 if (employee.FlowCaseId == null || employee.CvId == null) // If FlowCaseId or CvId is null, skip this employee
                 {

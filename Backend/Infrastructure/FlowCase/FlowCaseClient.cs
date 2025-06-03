@@ -74,7 +74,7 @@ namespace Infrastructure.FlowCase
             {
                 foreach (var skill in technology.TechnologySkills)
                 {
-                    if (string.IsNullOrWhiteSpace(skill.Values.Name))
+                    if (string.IsNullOrWhiteSpace(skill.Tags.Name))
                     {
                         _logger.LogWarning($"Skill with ID {skill.SkillId} has an empty name and will be skipped.");
                         continue;
@@ -123,13 +123,7 @@ namespace Infrastructure.FlowCase
                         _logger.LogWarning($"Skill with ID {skill.SkillId} has an empty name and will be skipped.");
                         continue;
                     }
-
-                    var skillDto = new SkillDTO
-                    {
-                        SkillId = skill.SkillId,
-                        SkillName = skill.Values.Name,
-                    };
-                    skills.Add(skillDto);
+                    skills.Add(skill.ToDto());
                 }
 
                 offset += limit;
@@ -163,7 +157,7 @@ namespace Infrastructure.FlowCase
                     users.Add(user);
                 }
                 offset += limit;
-                uri = $"api/v1/users?offset={offset}&limit={limit}";
+                uri = $"api/v2/users/search?from={offset}&size={limit}&sort_by=country&deactivated=false";
                 response = await MakeRequest<List<FlowcaseUserModel>>(uri);
             }
             return users;

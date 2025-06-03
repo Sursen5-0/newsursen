@@ -25,7 +25,7 @@ namespace Infrastructure.Persistance.Mappers
         {
             return new Skill()
             {
-                Id = skill.Id,
+                Id = Guid.NewGuid(),
                 Name = skill.SkillName,
                 ExternalId = skill.SkillId
             };

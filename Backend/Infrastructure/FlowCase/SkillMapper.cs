@@ -16,9 +16,8 @@ namespace Infrastructure.FlowCase
         {
             return new SkillDTO()
             {
-                Id = Guid.NewGuid(),
                 SkillId = skill.SkillId,
-                SkillName = skill.Tags.Dk,
+                SkillName = skill.Values.Name,
                 SkillProficiency = skill.Proficiency,
                 SkillTotalDurationInYears = skill.TotalDurationInYears
                 };

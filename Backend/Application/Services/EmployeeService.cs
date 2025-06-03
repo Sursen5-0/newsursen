@@ -250,7 +250,7 @@ namespace Application.Services
                     continue;
                 }
                 // Check if the employee already exists in the database
-/*                if (!existingEmployees.Any(f => f.FlowCaseId == employee.UserId && f.CvId == employee.DefaultCvId))
+                if (!existingEmployees.Any(f => f.FlowCaseId == employee.UserId && f.CvId == employee.DefaultCvId))
                 {
                     // Update existing employee
                     var existingEmployee = existingEmployees.First(e => e.Email == employee.Email || e.PrincipalEmail == employee.Email);
@@ -262,7 +262,7 @@ namespace Application.Services
                     existingEmployee.FlowCaseId = employee.UserId;
                     existingEmployee.CvId = employee.DefaultCvId;
                     updateList.Add(existingEmployee);
-                }*/
+                }
             }
 
             if (updateList.Any())

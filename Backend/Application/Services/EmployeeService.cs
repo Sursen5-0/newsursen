@@ -16,7 +16,7 @@ namespace Application.Services
         {
             _logger.LogInformation($"Start synchronizing of absence");
             var absences = await _severaClient.GetAbsence();
-            if (absences == null || absences.Any())
+            if (absences == null || !absences.Any())
             {
                 _logger.LogWarning($"_severaClient.GetAbsence returned empty, not continuing syncronization of absence");
                 return;
@@ -31,7 +31,7 @@ namespace Application.Services
                 var employee = employees.FirstOrDefault(x => x.SeveraId == absenceArray[i].SeveraEmployeeId);
                 if (employee == null)
                 {
-                    _logger.LogError("No employeeId found for the severa user with ID: {absence.ExternalId}", absenceArray[i].ExternalId);
+                    _logger.LogWarning("No employeeId found for the severa user with ID: {absence.ExternalId}", absenceArray[i].ExternalId);
                     continue;
                 }
                 absenceArray[i].EmployeeId = employee.Id;
@@ -40,7 +40,7 @@ namespace Application.Services
 
             var updateList = new List<AbsenceDTO>();
             var insertList = new List<AbsenceDTO>();
-            foreach (var item in absences)
+            foreach (var item in absenceArray)
             {
                 if (dbExternalIds.Any(x => x == item.ExternalId))
                 {
@@ -57,6 +57,8 @@ namespace Application.Services
             await _employeeRepository.UpdateAbsences(updateList);
             _logger.LogInformation("Inserting {insertamount}", insertList.Count);
             await _employeeRepository.InsertAbsences(insertList);
+            _logger.LogInformation($"Done synchronizing of absence");
+
         }
 
         public async Task SynchronizeContracts()
@@ -71,6 +73,11 @@ namespace Application.Services
             foreach (var employee in employees)
             {
                 var result = await _severaClient.GetWorkContractByUserId(employee.SeveraId!.Value);
+                if(result == null)
+                {
+                    _logger.LogWarning("Unable to find contract for user {Email}",employee.Email);
+                    continue;
+                }
                 result.EmployeeId = employee.Id;
                 contracts.Add(result);
             }
@@ -119,12 +126,13 @@ namespace Application.Services
 
         public async Task SynchronizeProjects()
         {
-            _logger.LogInformation($"Start synchronizing of contracts");
+            _logger.LogInformation($"Start synchronizing of projects");
             var dbProjects = await _projectRepository.GetProjects();
-            var projects = await _severaClient.GetProjects();
             var dbExternalIds = new HashSet<Guid>(dbProjects.Select(x => x.ExternalId));
             var employees = await _employeeRepository.GetEmployees();
 
+            _logger.LogInformation($"Getting data from Severa...");
+            var projects = await _severaClient.GetProjects();
             _logger.LogInformation("Synchronizing on {projects.Count()} projects", projects.Count());
             var projectArray = projects.ToArray();
 
@@ -133,7 +141,7 @@ namespace Application.Services
                 var employee = employees.FirstOrDefault(x => x.SeveraId == projectArray[i].ExternalOwnerId);
                 if (employee == null)
                 {
-                    _logger.LogError("No employeeId found for the severa user with ID: {absence.ExternalId}", projectArray[i].ExternalId);
+                    _logger.LogWarning("No employeeId found for the severa user with ID: {absence.ExternalId}", projectArray[i].ExternalId);
                     continue;
                 }
                 projectArray[i].OwnerId = employee.Id;
@@ -155,18 +163,24 @@ namespace Application.Services
         public async Task SynchronizeUnmappedSeveraIds()
         {
             _logger.LogInformation($"Start synchronizing of severaIds");
-            var dbEmployees = await _employeeRepository.GetEmployeeWithoutSeveraIds();
+            var dbEmployees = (await _employeeRepository.GetEmployeeWithoutSeveraIds()).ToArray();
             var severaEmployees = new List<SeveraEmployeeModel>();
-            foreach (var employee in dbEmployees)
+
+            _logger.LogInformation("Synchronizing on {Count} employees", dbEmployees.Length);
+            for (int i = 0; i < dbEmployees.Length; i++)
             {
-                var data = await _severaClient.GetUserByEmail(employee.Email);
+                _logger.LogInformation("Synchronizing {Number} on {Count} employees",i, dbEmployees.Length);
+                var data = await _severaClient.GetUserByEmail(dbEmployees[i].Email);
                 if (data == null)
                 {
+                    _logger.LogWarning("Unable to find user in Severa with email: {Email}", dbEmployees[i].Email);
                     continue;
                 }
                 severaEmployees.Add(data);
             }
+
             await _employeeRepository.UpdateSeveraIds(severaEmployees);
+            _logger.LogInformation($"Done synchronizing of severaIds");
         }
 
         public async Task SynchronizeEmployeesAsync()

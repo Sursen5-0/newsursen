@@ -9,8 +9,8 @@ namespace Domain.Interfaces.Repositories
 {
     public interface IEmployeeRepository
     {
-        public Task<IEnumerable<EmployeeDTO>> GetEmployees(bool includeDisabled = false);
-        public Task<IEnumerable<EmployeeDTO>> GetEmployeeWithoutSeveraIds(bool includeDisabled = false);
+        public Task<IEnumerable<EmployeeDTO>> GetEmployees(bool includeDisabled = true);
+        public Task<IEnumerable<EmployeeDTO>> GetEmployeeWithoutSeveraIds(bool includeDisabled = true);
         public Task<IEnumerable<AbsenceDTO>> GetAbsenceByExternalIDs(IEnumerable<Guid> ids);
         public Task InsertEmployeeContracts(IEnumerable<EmployeeContractDTO> employeeDTO);
         public Task UpdateSeveraIds(IEnumerable<SeveraEmployeeModel> employeeDTO);

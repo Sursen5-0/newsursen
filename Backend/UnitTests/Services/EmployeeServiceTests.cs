@@ -161,7 +161,7 @@ namespace UnitTests.Services
 
             // Assert
             _projectRepoMock.Verify(x => x.InsertProjects(It.Is<List<ProjectDTO>>(x => x.Count == 1)), Times.Once);
-            _loggerMock.VerifyLog(LogLevel.Error, Times.Once());
+            _loggerMock.VerifyLog(LogLevel.Warning, Times.Once());
         }
 
         [Fact]

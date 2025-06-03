@@ -2,7 +2,7 @@
 using Domain.Models;
 using Infrastructure.Persistance.Models;
 
-namespace Infrastructure.Persistance.Mappers
+namespace Infrastructure.Entra.Mappers
 {
     public static class EntraEmployeeMapper
     {
@@ -23,6 +23,7 @@ namespace Infrastructure.Persistance.Mappers
                 PersonalPhoneNumber = dto.PersonalPhoneNumber,
                 FlowCaseId = dto.FlowCaseId,
                 FlowCaseCVId = dto.CvId,
+                SeveraId = dto.SeveraId
             };
         }
 
@@ -42,6 +43,7 @@ namespace Infrastructure.Persistance.Mappers
                 PersonalPhoneNumber = entity.PersonalPhoneNumber,
                 FlowCaseId = entity.FlowCaseId,
                 CvId = entity.FlowCaseCVId,
+                SeveraId = entity.SeveraId,
             };
         }
     }

@@ -2,7 +2,7 @@
 using System.Text.Json.Serialization;
 using System.Collections.Generic;
 
-namespace Infrastructure.Persistance.Models
+namespace Infrastructure.Entra.Models
 {
     internal class EntraEntityModel
     {

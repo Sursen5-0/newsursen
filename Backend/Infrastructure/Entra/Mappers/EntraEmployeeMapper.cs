@@ -12,7 +12,7 @@ namespace Infrastructure.Entra.Mappers
 
             return new Employee
             {
-                Id = Guid.NewGuid(),
+                Id = dto.Id == default ? Guid.NewGuid() : dto.Id,
                 EntraId = dto.EntraId,
                 FirstName = dto.FirstName,
                 LastName = dto.LastName,
@@ -21,7 +21,8 @@ namespace Infrastructure.Entra.Mappers
                 LeaveDate = dto.LeaveDate,
                 WorkPhoneNumber = dto.WorkPhoneNumber,
                 PersonalPhoneNumber = dto.PersonalPhoneNumber,
-                SeveraId = dto.SeveraId
+                SeveraId = dto.SeveraId,
+                ManagerId = dto.ManagerId,
             };
         }
 
@@ -40,6 +41,7 @@ namespace Infrastructure.Entra.Mappers
                 WorkPhoneNumber = entity.WorkPhoneNumber,
                 PersonalPhoneNumber = entity.PersonalPhoneNumber,
                 SeveraId = entity.SeveraId,
+                ManagerId = entity.ManagerId
             };
         }
     }

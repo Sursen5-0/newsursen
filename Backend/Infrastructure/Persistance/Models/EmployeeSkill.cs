@@ -7,7 +7,7 @@ public partial class EmployeeSkill : BaseEntity
 {
     public Guid EmployeeId { get; set; }
 
-    public Guid? SkillId { get; set; }
+    public Guid SkillId { get; set; }
 
     public byte YearsExperience { get; set; }
 

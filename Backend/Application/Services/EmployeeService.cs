@@ -253,7 +253,7 @@ namespace Application.Services
                 if (!existingEmployees.Any(f => f.FlowCaseId == employee.UserId && f.CvId == employee.DefaultCvId))
                 {
                     // Update existing employee
-                    var existingEmployee = existingEmployees.First(e => e.Email == employee.Email || e.PrincipalEmail == employee.Email);
+                    var existingEmployee = existingEmployees.First(e => e.Email == employee.Email);
                     if (existingEmployee == null)
                     {
                         _logger.LogWarning($"No existing employee found for {employee.Name} with email {employee.Email}, skipping.");

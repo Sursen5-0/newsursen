@@ -9,7 +9,6 @@ namespace Domain.Interfaces.Repositories
     public interface ISkillRepository
     {
         Task<IEnumerable<SkillDTO>> GetAllSkillsAsync();
-        Task<SkillDTO?> GetSkillByIdAsync(Guid skillId);
-        Task AddSkillAsync(SkillDTO skill);
+        Task AddSkillAsync(IEnumerable<SkillDTO> skills);
     }
 }

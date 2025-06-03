@@ -13,23 +13,17 @@ namespace Infrastructure.Persistance.Repositories
 {
     public class SkillRepository(SursenContext _db, ILogger<SkillRepository> _logger) : ISkillRepository
     {
-        public Task AddSkillAsync(SkillDTO skill)
+        public async Task AddSkillAsync(IEnumerable<SkillDTO> skills)
         {
-            _logger.LogInformation($"Adding skill: {skill.SkillName}");
-            var skillEntity = SkillMapper.ToEntity(skill);
-            _db.Skills.Add(skillEntity);
-            return _db.SaveChangesAsync();
+            var skillEntity = skills.Select(skill => skill.ToEntity()).ToList();
+            _db.Skills.AddRange(skillEntity);
+            _db.SaveChangesAsync();
         }
 
         public async Task<IEnumerable<SkillDTO>> GetAllSkillsAsync()
         {
             _logger.LogInformation("Retrieving all skills from the database.");
             return await _db.Skills.Select(x => x.ToDTO()).ToListAsync();
-        }
-
-        public Task<SkillDTO?> GetSkillByIdAsync(Guid skillId)
-        {
-            throw new NotImplementedException();
         }
     }
 }

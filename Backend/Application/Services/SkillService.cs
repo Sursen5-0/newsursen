@@ -3,6 +3,7 @@ using Domain.Interfaces.Repositories;
 using Domain.Interfaces.Services;
 using Domain.Models;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 
 namespace Application.Services
 {
@@ -14,10 +15,6 @@ namespace Application.Services
         /// <returns></returns>
         public async Task SynchronizeSkillsFromFlowcaseAsync()
         {
-            ArgumentNullException.ThrowIfNull(_flowcaseClient);
-            ArgumentNullException.ThrowIfNull(_skillRepository);
-            ArgumentNullException.ThrowIfNull(_logger);
-
             _logger.LogInformation("Synchronizing skills from Flowcase");
 
             List<SkillDTO> skills = await _flowcaseClient.GetSkillsFromFlowcaseAsync();
@@ -30,17 +27,22 @@ namespace Application.Services
             var existingSkills = await _skillRepository.GetAllSkillsAsync();
             var existingSkillId = existingSkills.Select(s => s.SkillId).ToHashSet();
 
+            var newSkills = new List<SkillDTO>();
             foreach (var skill in skills)
             {
                 if (!existingSkillId.Contains(skill.SkillId))
                 {
                     _logger.LogInformation($"Adding new skill: {skill.SkillName}");
-                    await _skillRepository.AddSkillAsync(skill);
+                    newSkills.Add(skill);
                 }
                 else
                 {
                     _logger.LogInformation($"Skill already exists: {skill.SkillName}, skipping addition.");
                 }
+            }
+            if (newSkills.Any())
+            {
+                await _skillRepository.AddSkillAsync(newSkills);
             }
         }
 

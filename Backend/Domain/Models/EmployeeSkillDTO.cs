@@ -9,7 +9,7 @@ namespace Domain.Models
     public class EmployeeSkillDTO
     {
         public Guid Id { get; set; }
-        public Guid? SkillId { get; set; }
+        public Guid SkillId { get; set; }
         public byte YearsOfExperience { get; set; }
     }
 }

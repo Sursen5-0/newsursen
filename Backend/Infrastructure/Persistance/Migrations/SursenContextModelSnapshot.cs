@@ -189,8 +189,8 @@ namespace Infrastructure.Migrations
                         .HasColumnType("char(24)")
                         .IsFixedLength();
 
-                    b.Property<DateOnly?>("HireDate")
-                        .HasColumnType("date");
+                    b.Property<DateTime?>("HireDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("HubSpotId")
                         .HasColumnType("nvarchar(max)");

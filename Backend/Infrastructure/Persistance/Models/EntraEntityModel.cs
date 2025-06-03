@@ -37,7 +37,7 @@ namespace Infrastructure.Persistance.Models
         internal class EntraManager
         {
             [JsonPropertyName("id")]
-            public Guid? Id { get; set; }
+            public Guid Id { get; set; }
 
             [JsonPropertyName("displayName")]
             public string? DisplayName { get; set; }

@@ -30,6 +30,8 @@ namespace Infrastructure.Persistance.Models
         [JsonPropertyName("mobilePhone")]
         public string? PersonalPhoneNumber { get; set; }
 
+        [JsonPropertyName("userPrincipalName")]
+        public string? UserPrincipalName { get; set; }
 
         [JsonPropertyName("manager")]
         public EntraManager? Manager { get; set; }

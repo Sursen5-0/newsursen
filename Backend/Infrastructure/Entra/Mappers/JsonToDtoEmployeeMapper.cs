@@ -30,8 +30,8 @@ namespace Infrastructure.Entra.Mappers
                 SeveraId = null,
                 FlowCaseId = null,
                 HireDate = model.HireDate,
-
-                EntraManagerId = model.Manager?.Id
+                EntraManagerId = model.Manager?.Id,
+                UserPrincipalName = model.UserPrincipalName
             };
         }
     }

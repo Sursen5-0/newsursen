@@ -13,7 +13,5 @@ namespace Domain.Models
         public string SkillName { get; set; } = null!;
         public byte SkillProficiency { get; set; } = 0;
         public byte SkillTotalDurationInYears { get; set; } = 0;
-        public byte SkillBaseDurationInYears { get; set; } = 0;
-        public byte SkillOffsetDurationInYears { get; set; } = 0;
     }
 }

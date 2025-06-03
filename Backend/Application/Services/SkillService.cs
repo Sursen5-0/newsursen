@@ -45,18 +45,6 @@ namespace Application.Services
                 await _skillRepository.AddSkillAsync(newSkills);
             }
         }
-
-        public async Task SynchronizeSkillsFromCVAsync(string userId, string cvId)
-        {
-
-            _logger.LogInformation($"Retrieving skills from CV for user {userId} and CV {cvId}");
-            await _flowcaseClient.GetSkillsFromCVAsync(userId, cvId);
-        }
-
-        public async Task SynchronizeEmployeesWithFlowcaseIds()
-        {
-            _logger.LogInformation($"Synchronizing employees with Flowcase id and CV id");
-            await _flowcaseClient.GetUsersAsync();
-        }
+    
     }
 }

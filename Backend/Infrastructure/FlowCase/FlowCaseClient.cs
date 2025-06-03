@@ -49,13 +49,13 @@ namespace Infrastructure.FlowCase
         {
             List<SkillDTO> skills = new List<SkillDTO>();
             var uri = $"api/v3/cvs/{userId}/{cvId}";
-            var response = await MakeRequest<List<FlowcaseSkillModel>>(uri);
+            var response = await MakeRequest<FlowcaseSkillModel>(uri);
             if (!response.IsSuccess)
             {
                 throw new Exception($"Failed to retrieve skills: {response.Message}");
             }
 
-            foreach (var skill in response.Data)
+            /*foreach (var skill in response.Data.Technologies)
             {
                 if (string.IsNullOrWhiteSpace(skill.Values.Name))
                 {
@@ -64,14 +64,30 @@ namespace Infrastructure.FlowCase
                 }
                 var skillDto = new SkillDTO
                 {
-                    Id = Guid.NewGuid(),
                     SkillId = skill.SkillId,
                     SkillName = skill.Values.Name,
                     SkillTotalDurationInYears = skill.TotalDurationInYears,
                 };
                 skills.Add(skillDto);
+            }*/
+            foreach (var technology in response.Data.Technologies)
+            {
+                foreach (var skill in technology.TechnologySkills)
+                {
+                    if (string.IsNullOrWhiteSpace(skill.Values.Name))
+                    {
+                        _logger.LogWarning($"Skill with ID {skill.SkillId} has an empty name and will be skipped.");
+                        continue;
+                    }
+                    var skillDto = new SkillDTO
+                    {
+                        SkillId = skill.SkillId,
+                        SkillName = skill.Values.Name,
+                        SkillTotalDurationInYears = skill.TotalDurationInYears,
+                    };
+                    skills.Add(skillDto);
+                }
             }
-
             return skills;
         }
 
@@ -110,7 +126,6 @@ namespace Infrastructure.FlowCase
 
                     var skillDto = new SkillDTO
                     {
-                        Id = Guid.NewGuid(),
                         SkillId = skill.SkillId,
                         SkillName = skill.Values.Name,
                     };

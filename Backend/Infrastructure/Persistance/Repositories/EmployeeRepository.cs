@@ -171,21 +171,21 @@ namespace Infrastructure.Persistance.Repositories
         public async Task UpdateEmployeeSkills(IEnumerable<EmployeeSkillDTO> employeeSkills)
         {
             var employeeIdList = _db.Employees.Select(e => e.Id).ToList();
-            var skillList = _db.EmployeeSkills.Where(x => employeeSkills.Select(c => c.Id).Contains(x.EmployeeId)).ToDictionary(x => x.EmployeeId);
+            var skillList = _db.EmployeeSkills.Where(x => employeeSkills.Select(c => c.EmployeeId).Contains(x.EmployeeId)).ToDictionary(x => x.EmployeeId);
             foreach (var skill in employeeSkills)
             {
-                if (!employeeIdList.Contains(skill.Id))
+                if (!employeeIdList.Contains(skill.EmployeeId))
                 {
-                    _logger.LogWarning($"EmployeeId {skill.Id} not found for skills, not inserting data.");
+                    _logger.LogWarning($"EmployeeId {skill.EmployeeId} not found for skills, not inserting data.");
                     continue;
                 }
-                if (skill.Id == default || !skillList.ContainsKey(skill.Id))
+                if (skill.EmployeeId == default || !skillList.ContainsKey(skill.EmployeeId))
                 {
                     await _db.EmployeeSkills.AddAsync(EmployeeSkillMapper.ToEntity(skill));
                 }
                 else
                 {
-                    var dbSkill = skillList[skill.Id];
+                    var dbSkill = skillList[skill.EmployeeId];
                     _db.Entry(dbSkill).CurrentValues.SetValues(EmployeeSkillMapper.ToEntity(skill));
                 }
             }
@@ -198,9 +198,9 @@ namespace Infrastructure.Persistance.Repositories
             var employeeIdList = _db.Employees.Select(e => e.Id).ToList();
             foreach (var skill in employeeSkills)
             {
-                if (!employeeIdList.Contains(skill.Id))
+                if (!employeeIdList.Contains(skill.EmployeeId))
                 {
-                    _logger.LogWarning($"EmployeeId {skill.Id} not found for skills, not inserting data.");
+                    _logger.LogWarning($"EmployeeId {skill.EmployeeId} not found for skills, not inserting data.");
                     continue;
                 }
                 await _db.EmployeeSkills.AddAsync(EmployeeSkillMapper.ToEntity(skill));

@@ -9,7 +9,7 @@ namespace Infrastructure.Persistance.Mappers
         {
             return new EmployeeSkillDTO
             {
-                Id = employeeSkill.EmployeeId,
+                EmployeeId = employeeSkill.EmployeeId,
                 SkillId = employeeSkill.SkillId,
                 YearsOfExperience = employeeSkill.YearsExperience
             };
@@ -18,7 +18,7 @@ namespace Infrastructure.Persistance.Mappers
         {
             return new EmployeeSkill
             {
-                EmployeeId = employeeSkillDto.Id,
+                EmployeeId = employeeSkillDto.EmployeeId,
                 SkillId = employeeSkillDto.SkillId,
                 YearsExperience = employeeSkillDto.YearsOfExperience
             };

@@ -246,14 +246,14 @@ namespace Application.Services
                 }
                 if (employee.DefaultCvId == null)
                 {
-                    _logger.LogWarning($"Employee {employee.Name}({employee.UserId} has an empty CV ID, skipping.");
+                    _logger.LogWarning($"Employee {employee.Name}({employee.UserId}) has an empty CV ID, skipping.");
                     continue;
                 }
                 // Check if the employee already exists in the database
                 if (!existingEmployees.Any(f => f.FlowCaseId == employee.UserId && f.CvId == employee.DefaultCvId))
                 {
                     // Update existing employee
-                    var existingEmployee = existingEmployees.First(e => e.Email == employee.Email);
+                    var existingEmployee = existingEmployees.FirstOrDefault(e => e.Email == employee.Email);
                     if (existingEmployee == null)
                     {
                         _logger.LogWarning($"No existing employee found for {employee.Name} with email {employee.Email}, skipping.");
@@ -282,6 +282,11 @@ namespace Application.Services
 
             foreach (var employee in employees) // Iterate over each employee
             {
+                if (employee.FlowCaseId == null || employee.CvId == null) // If FlowCaseId or CvId is null, skip this employee
+                {
+                    _logger.LogWarning($"Employee {employee.Id} has no FlowCaseId or CvId, skipping mapping.");
+                    continue;
+                }
                 var skills = await _flowcaseClient.GetSkillsFromCVAsync(employee.FlowCaseId, employee.CvId); // Fetch skills from Flowcase CV
                 if (skills == null || !skills.Any()) // If no skills found, skip this employee
                 {
@@ -290,13 +295,13 @@ namespace Application.Services
                 }
                 foreach (var skill in skills) // Iterate over each skill from Flowcase
                 {
-                    if (!flowCaseSkills.Any(s => s.Id == skill.Id)) // If skill does not exist in repository
+                    if (!flowCaseSkills.Any(s => s.SkillId == skill.SkillId)) // If skill does not exist in repository
                     {
                         _logger.LogInformation($"Adding skill {skill.SkillName} to employee {employee.Id}"); // Log new skill addition
                         newSkillsList.Add(new EmployeeSkillDTO // Add new skill to insert list
                         {
-                            Id = employee.Id,
-                            SkillId = flowCaseSkills.First(s => s.Id == skill.Id).Id, // Set SkillId from repository
+                            EmployeeId = employee.Id,
+                            SkillId = skill.Id, // Set SkillId from repository
                             YearsOfExperience = skill.SkillTotalDurationInYears // Set years of experience
                         });
 

@@ -6,8 +6,7 @@ namespace Infrastructure.FlowCase.Models
 {
     public class RootModel
     {
-        [JsonPropertyName("technologies")]
-        public List<TechnologyModel> Technologies { get; set; } = new();
+
     }
 
     public class TechnologyModel
@@ -18,7 +17,7 @@ namespace Infrastructure.FlowCase.Models
 
     /// <summary>
     /// Used when taking name from masterdata endpoint
-    /// 
+    /// </summary>
     public class FlowcaseSkillName
     {
         [JsonPropertyName("dk")]
@@ -42,10 +41,7 @@ namespace Infrastructure.FlowCase.Models
                 return null;
             }
         }
-
     }
-
-
 
     public class FlowcaseSkillModel
     {
@@ -63,5 +59,8 @@ namespace Infrastructure.FlowCase.Models
 
         [JsonPropertyName("total_duration_in_years")]
         public byte TotalDurationInYears { get; set; }
+        
+        [JsonPropertyName("technologies")]
+        public List<TechnologyModel> Technologies { get; set; } = new();
     }
 }

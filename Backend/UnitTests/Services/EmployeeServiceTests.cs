@@ -43,7 +43,7 @@ namespace UnitTests.Services
 
             _employeeRepoMock.Setup(x => x.GetEmployees(It.IsAny<bool>())).ReturnsAsync(emptyEmployeeList);
             _employeeRepoMock.Setup(x => x.InsertEmployeeContracts(It.IsAny<IEnumerable<EmployeeContractDTO>>())).Verifiable();
-            
+
 
             // Act
             await _sut.SynchronizeContracts();
@@ -180,7 +180,7 @@ namespace UnitTests.Services
             _projectRepoMock.Setup(x => x.GetProjects(It.IsAny<bool>())).ReturnsAsync(new List<ProjectDTO>());
             _severaClientMock.Setup(x => x.GetProjects(It.IsAny<int?>())).ReturnsAsync(severaProjects);
             _employeeRepoMock.Setup(x => x.GetEmployees(It.IsAny<bool>())).ReturnsAsync(employees);
-            
+
             // Act
             await _sut.SynchronizeProjects();
 
@@ -219,5 +219,92 @@ namespace UnitTests.Services
             _projectRepoMock.Verify(x => x.UpdateProjects(It.Is<List<ProjectDTO>>(x => x.Count == 1)), Times.Once);
         }
 
+        [Fact]
+        public async Task SynchronizeEmployeesWithFlowcaseIdsAsync_UpdatesEmployees_WhenFlowcaseIdsMissing()
+        {
+            // Arrange
+            var flowcaseUsers = new List<FlowcaseUserModel>
+            {
+                new FlowcaseUserModel { UserId = "fc1", DefaultCvId = "cv1", Name = "Test User", Email = "test@example.com" }
+            };
+                    var existingEmployees = new List<EmployeeDTO>
+            {
+                new EmployeeDTO { Id = Guid.NewGuid(), Email = "test@example.com", FlowCaseId = null, CvId = null }
+            };
+
+            _flowcaseClientMock.Setup(x => x.GetUsersAsync()).ReturnsAsync(flowcaseUsers);
+            _employeeRepoMock.Setup(x => x.GetEmployees(It.IsAny<bool>())).ReturnsAsync(existingEmployees);
+            _employeeRepoMock.Setup(x => x.UpdateEmployeesAsync(It.IsAny<IEnumerable<EmployeeDTO>>())).Returns(Task.CompletedTask).Verifiable();
+
+            // Act
+            await _sut.SynchronizeEmployeesWithFlowcaseIdsAsync();
+
+            // Assert
+            _employeeRepoMock.Verify(x => x.UpdateEmployeesAsync(It.Is<IEnumerable<EmployeeDTO>>(list =>
+                list.Any(e => e.FlowCaseId == "fc1" && e.CvId == "cv1"))), Times.Once);
+        }
+
+        [Fact]
+        public async Task SynchronizeEmployeesWithFlowcaseIdsAsync_DoesNothing_WhenNoFlowcaseUsers()
+        {
+            // Arrange
+            _flowcaseClientMock.Setup(x => x.GetUsersAsync()).ReturnsAsync(new List<FlowcaseUserModel>());
+
+            // Act
+            await _sut.SynchronizeEmployeesWithFlowcaseIdsAsync();
+
+            // Assert
+            _employeeRepoMock.Verify(x => x.UpdateEmployeesAsync(It.IsAny<IEnumerable<EmployeeDTO>>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task SynchronizeEmployeeSkillsAsync_InsertsNewSkills_WhenSkillsAreMissing()
+        {
+            // Arrange
+            var employeeId = Guid.NewGuid();
+            var skillId = Guid.NewGuid();
+            var employees = new List<EmployeeDTO>
+            {
+                new EmployeeDTO { Id = employeeId, FlowCaseId = "fc1", CvId = "cv1" }
+            };
+            var flowcaseSkills = new List<SkillDTO>(); // No skills in repository
+            var flowcaseSkillFromCv = new List<SkillDTO>
+            {
+                new SkillDTO { Id = skillId, SkillName = "C#", SkillTotalDurationInYears = 5 }
+            };
+
+            _employeeRepoMock.Setup(x => x.GetEmployees(It.IsAny<bool>())).ReturnsAsync(employees);
+            _skillRepositoryMock.Setup(x => x.GetAllSkillsAsync()).ReturnsAsync(flowcaseSkills);
+            _flowcaseClientMock.Setup(x => x.GetSkillsFromCVAsync("fc1", "cv1")).ReturnsAsync(flowcaseSkillFromCv);
+            _employeeRepoMock.Setup(x => x.InsertEmployeeSkills(It.IsAny<IEnumerable<EmployeeSkillDTO>>())).Returns(Task.CompletedTask).Verifiable();
+
+            // Act
+            await _sut.SynchronizeEmployeeSkillsAsync();
+
+            // Assert
+            _employeeRepoMock.Verify(x => x.InsertEmployeeSkills(It.Is<IEnumerable<EmployeeSkillDTO>>(list =>
+                list.Any(s => s.EmployeeId == employeeId && s.YearsOfExperience == 5))), Times.Once);
+        }
+
+        [Fact]
+        public async Task SynchronizeEmployeeSkillsAsync_LogsAndSkips_WhenNoSkillsFound()
+        {
+            // Arrange
+            var employeeId = Guid.NewGuid();
+            var employees = new List<EmployeeDTO>
+    {
+        new EmployeeDTO { Id = employeeId, FlowCaseId = "fc1", CvId = "cv1" }
+    };
+
+            _employeeRepoMock.Setup(x => x.GetEmployees(It.IsAny<bool>())).ReturnsAsync(employees);
+            _skillRepositoryMock.Setup(x => x.GetAllSkillsAsync()).ReturnsAsync(new List<SkillDTO>());
+            _flowcaseClientMock.Setup(x => x.GetSkillsFromCVAsync("fc1", "cv1")).ReturnsAsync(new List<SkillDTO>());
+
+            // Act
+            await _sut.SynchronizeEmployeeSkillsAsync();
+
+            // Assert
+            _employeeRepoMock.Verify(x => x.InsertEmployeeSkills(It.IsAny<IEnumerable<EmployeeSkillDTO>>()), Times.Never);
+        }
     }
 }

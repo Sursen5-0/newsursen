@@ -4,6 +4,7 @@ using Domain.Interfaces.Services;
 using Domain.Models;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -73,9 +74,9 @@ namespace Application.Services
             foreach (var employee in employees)
             {
                 var result = await _severaClient.GetWorkContractByUserId(employee.SeveraId!.Value);
-                if(result == null)
+                if (result == null)
                 {
-                    _logger.LogWarning("Unable to find contract for user {Email}",employee.Email);
+                    _logger.LogWarning("Unable to find contract for user {Email}", employee.Email);
                     continue;
                 }
                 result.EmployeeId = employee.Id;
@@ -169,7 +170,7 @@ namespace Application.Services
             _logger.LogInformation("Synchronizing on {Count} employees", dbEmployees.Length);
             for (int i = 0; i < dbEmployees.Length; i++)
             {
-                _logger.LogInformation("Synchronizing {Number} on {Count} employees",i, dbEmployees.Length);
+                _logger.LogInformation("Synchronizing {Number} on {Count} employees", i, dbEmployees.Length);
                 var data = await _severaClient.GetUserByEmail(dbEmployees[i].Email);
                 if (data == null)
                 {
@@ -204,13 +205,22 @@ namespace Application.Services
                 return;
             }
 
-            var incomingIds = validDtos.Select(d => d.EntraId).ToList();
-            var existingDtos = await _employeeRepository.GetByEntraIdsAsync(incomingIds);
-            var existingIds = new HashSet<Guid>(existingDtos.Select(e => e.EntraId));
+            var existingEmployees = (await _employeeRepository.GetEmployees()).ToList();
+            var allEmployees = new List<EmployeeDTO>(existingEmployees);
+            allEmployees.AddRange(dtos.Where(x => !existingEmployees.Select(x => x.EntraId).Contains(x.EntraId)));
+            var mapEmployees = allEmployees.ToDictionary(x => x.EntraId);
+            var existingIds = new HashSet<Guid>(existingEmployees.Select(e => e.EntraId));
 
-            var insertList = validDtos.Where(d => !existingIds.Contains(d.EntraId)).ToList();
-            var updateList = validDtos.Where(d => existingIds.Contains(d.EntraId)).ToList();
+            var dbMap = existingEmployees.ToDictionary(e => e.EntraId, e => e.Id);
+            var employeeArray = validDtos.ToArray();
 
+
+
+            var insertList = employeeArray.Where(d => !existingIds.Contains(d.EntraId)).ToList();
+            insertList.ForEach(x => x.Id = Guid.NewGuid());
+            var updateList = employeeArray.Where(d => existingIds.Contains(d.EntraId)).ToList();
+            SetManagerIds(insertList, existingEmployees);
+            SetManagerIds(updateList, existingEmployees);
             if (insertList.Any())
             {
                 await _employeeRepository.InsertEmployeesAsync(insertList);
@@ -222,6 +232,33 @@ namespace Application.Services
                 await _employeeRepository.UpdateEmployeesAsync(updateList);
                 foreach (var dto in updateList)
                     _logger.LogInformation("Updated employee {EntraId}", dto.EntraId);
+            }
+            _logger.LogInformation("Done SynchronizeEmployeesAsync from entra");
+
+        }
+        private void SetManagerIds(List<EmployeeDTO> dtos, IEnumerable<EmployeeDTO> existingEmployees)
+        {
+            var allEmployees = new List<EmployeeDTO>(existingEmployees);
+            allEmployees.AddRange(dtos.Where(x => !existingEmployees.Select(x => x.EntraId).Contains(x.EntraId)));
+            var mapEmployees = allEmployees.ToDictionary(x => x.EntraId);
+            var existingIds = new HashSet<Guid>(existingEmployees.Select(e => e.EntraId));
+
+            var dbMap = existingEmployees.ToDictionary(e => e.EntraId, e => e.Id);
+            var dtoArray = dtos.ToArray();
+            for (int i = 0; i < dtoArray.Length; i++)
+            {
+                if (!dtoArray[i].EntraManagerId.HasValue)
+                {
+                    _logger.LogWarning("No manager found for user {Name}", dtoArray[i].FirstName + " " + dtoArray[i].LastName);
+                    continue;
+                }
+                mapEmployees.TryGetValue(dtoArray[i].EntraManagerId.Value, out var manager);
+                if (manager == null || manager.Id == default)
+                {
+                    _logger.LogWarning("No manager found for user {Name}", dtoArray[i].FirstName + " " + dtoArray[i].LastName);
+                    continue;
+                }
+                dtoArray[i].ManagerId = manager.Id;
             }
         }
     }

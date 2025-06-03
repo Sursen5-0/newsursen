@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Infrastructure.Persistance.Models
 {
-    public class EntraEntityPage<T>
+    public class GraphUsersPage<T>
     {
         [JsonPropertyName("value")]
         public List<T>? Value { get; set; }

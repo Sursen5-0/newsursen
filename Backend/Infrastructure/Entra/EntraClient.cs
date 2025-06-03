@@ -91,7 +91,7 @@ namespace Infrastructure.Entra
                     throw new HttpRequestException($"Graph /users request failed with {response.StatusCode}: {errorContent}");
                 }
 
-                var page = await response.Content.ReadFromJsonAsync<EntraEntityPage<EntraEntityModel>>();
+                var page = await response.Content.ReadFromJsonAsync<GraphUsersPage<EntraEntityModel>>();
                 if (page?.Value != null)
                 {
                     foreach (var raw in page.Value)

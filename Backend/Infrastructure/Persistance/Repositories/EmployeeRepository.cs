@@ -130,8 +130,8 @@ namespace Infrastructure.Persistance.Repositories
         public async Task InsertEmployeesAsync(IEnumerable<EmployeeDTO> dtos)
         {
             if (dtos == null) throw new ArgumentNullException(nameof(dtos));
-            var entities = dtos.Select(d => d.ToEntity()).ToList();
-            _db.Employees.AddRange(entities);
+            var inserts = dtos.Select(x => x.ToEntity());
+            _db.Employees.AddRange(inserts);
             await _db.SaveChangesAsync();
         }
 
@@ -140,29 +140,24 @@ namespace Infrastructure.Persistance.Repositories
             if (dtos == null) throw new ArgumentNullException(nameof(dtos));
 
             var entraIds = dtos.Select(d => d.EntraId).ToHashSet();
-
-            var existingEntities = _db.Employees
+            var existingEntities = await _db.Employees
                 .Where(e => entraIds.Contains(e.EntraId))
-                .ToList()
-                .GroupBy(e => e.EntraId)
-                .ToDictionary(g => g.Key, g => g.First());
+                .ToListAsync();
 
+            var dbMap = existingEntities.ToDictionary(e => e.EntraId, e => e);
+            var dtoMap = dtos.ToDictionary(d => d.EntraId, d => d);
             var now = DateTime.UtcNow;
 
-            foreach (var kvp in existingEntities)
+            foreach (var entity in existingEntities)
             {
-                var entraId = kvp.Key;
-                var existingEntity = kvp.Value;
+                var dto = dtoMap[entity.EntraId];
+                var updated = dto.ToEntity();
 
-                var updatedEntity = dtos
-                    .First(d => d.EntraId == entraId)
-                    .ToEntity();
+                updated.Id = entity.Id;
+                updated.CreatedAt = entity.CreatedAt;
+                updated.UpdatedAt = now;
 
-                updatedEntity.Id = existingEntity.Id;
-                updatedEntity.CreatedAt = existingEntity.CreatedAt;
-                updatedEntity.UpdatedAt = now;
-
-                _db.Entry(existingEntity).CurrentValues.SetValues(updatedEntity);
+                _db.Entry(entity).CurrentValues.SetValues(updated);
             }
 
             await _db.SaveChangesAsync();

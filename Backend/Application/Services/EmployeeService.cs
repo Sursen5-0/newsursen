@@ -314,6 +314,7 @@ namespace Application.Services
                 _logger.LogInformation("Saving employees with FlowCase ID and CV ID");
                 await _employeeRepository.UpdateEmployeesAsync(updateList);
             }
+            _logger.LogInformation("Done synchronizing");
         }
 
         public async Task SynchronizeEmployeeSkillsAsync()

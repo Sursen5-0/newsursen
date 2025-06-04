@@ -26,8 +26,7 @@ namespace Infrastructure.FlowCase
         private readonly HttpClient _client;
         private const string FLOWCASE_KEY = "FLOWCASE_KEY";
         private readonly ILogger<FlowCaseClient> _logger;
-        private readonly string[] _officeNames ={"Minds"}; // Add more office names if needed
-        private readonly string officeId = "66586fcb0223890048fd218c"; //IT Minds office ID
+        private readonly string[] officeIds = { "66586fcb0223890048fd218c" }; //IT Minds office ID
 
         public FlowCaseClient(ISecretClient secretClient, HttpClient httpClient, ILogger<FlowCaseClient> logger)
         {
@@ -119,7 +118,7 @@ namespace Infrastructure.FlowCase
             List<FlowcaseUserModel> users = new();
             int offset = 0;
             int limit = 500;
-            var uri = $"api/v2/users/search?from={offset}&size={limit}&sort_by=country&deactivated=false&office_ids[]={officeId}";
+            var uri = $"api/v2/users/search?from={offset}&size={limit}&sort_by=country&deactivated=false{GetOfficeIdsArrayString()}";
             var response = await MakeRequest<List<FlowcaseUserModel>>(uri);
             if (!response.IsSuccess)
             {
@@ -132,7 +131,7 @@ namespace Infrastructure.FlowCase
                     users.Add(user);
                 }
                 offset += limit;
-                uri = $"api/v2/users/search?from={offset}&size={limit}&sort_by=country&deactivated=false&office_ids[]={officeId}";
+                uri = $"api/v2/users/search?from={offset}&size={limit}&sort_by=country&deactivated=false{GetOfficeIdsArrayString()}";
                 response = await MakeRequest<List<FlowcaseUserModel>>(uri);
             }
             return users;
@@ -176,7 +175,15 @@ namespace Infrastructure.FlowCase
            return returnModel;
 
         }
-        
+        private string GetOfficeIdsArrayString()
+        {
+            var sb = new StringBuilder();
+            for (int i = 0; i < officeIds.Length; i++)
+            {
+                sb.Append($"&office_ids[]={officeIds[i]}");
+            }
+            return sb.ToString();
+        }
 
 
     }

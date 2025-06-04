@@ -42,6 +42,7 @@ namespace Application.Services
             }
             if (newSkills.Any())
             {
+                _logger.LogInformation($"Adding {newSkills.Count} new skills to the database.");
                 await _skillRepository.AddSkillAsync(newSkills);
             }
         }

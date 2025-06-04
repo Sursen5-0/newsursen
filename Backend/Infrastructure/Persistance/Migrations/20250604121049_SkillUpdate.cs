@@ -61,7 +61,10 @@ namespace Infrastructure.Migrations
             migrationBuilder.AddColumn<string>(
                 name: "FlowCaseCVId",
                 table: "Employees",
-                type: "nvarchar(max)",
+                type: "char(24)",
+                unicode: false,
+                fixedLength: true,
+                maxLength: 24,
                 nullable: true);
 
             migrationBuilder.AddPrimaryKey(

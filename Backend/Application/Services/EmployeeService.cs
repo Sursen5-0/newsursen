@@ -314,7 +314,7 @@ namespace Application.Services
                 _logger.LogInformation("Saving employees with FlowCase ID and CV ID");
                 await _employeeRepository.UpdateEmployeesAsync(updateList);
             }
-            _logger.LogInformation("Done synchronizing");
+            _logger.LogInformation("Done synchronizing employees with FlowCasse IDs and CV IDs");
         }
 
         public async Task SynchronizeEmployeeSkillsAsync()
@@ -323,7 +323,7 @@ namespace Application.Services
             var employees = await _employeeRepository.GetEmployees(); // Fetch all employees from repository
             var flowCaseSkills = await _skillRepository.GetAllSkillsAsync(); // Fetch all skills from repository
 
-            var tempSkillList = new List<EmployeeSkillDTO>(); // List to hold new skills to insert
+            var skillList = new List<EmployeeSkillDTO>(); // List to hold new skills to insert
 
             if (!flowCaseSkills.Any())
             {
@@ -354,13 +354,13 @@ namespace Application.Services
                     ExternalId = x.ExternalId,
                     YearsOfExperience = x.YearsOfExperience
                 });
-                tempSkillList.AddRange(employeeSkills);
+                skillList.AddRange(employeeSkills);
             }
 
             var allEmployeeSkills = await _employeeRepository.GetEmployeeSkills();
             
-            var updatedSkillsList = tempSkillList.Where(flowcaseSkill => allEmployeeSkills.Any(dbskill => dbskill.ExternalId == flowcaseSkill.ExternalId && dbskill.EmployeeId == flowcaseSkill.EmployeeId));
-            var newSkillList = tempSkillList.Except(updatedSkillsList);
+            var updatedSkillsList = skillList.Where(flowcaseSkill => allEmployeeSkills.Any(dbskill => dbskill.ExternalId == flowcaseSkill.ExternalId && dbskill.EmployeeId == flowcaseSkill.EmployeeId));
+            var newSkillList = skillList.Except(updatedSkillsList);
             
             var updateListIds = updatedSkillsList.Select(x => new { x.EmployeeId, x.ExternalId }).ToHashSet();
             var deleteSkillList = allEmployeeSkills.Where(x => !updateListIds.Contains(new { x.EmployeeId, x.ExternalId }));
@@ -380,6 +380,7 @@ namespace Application.Services
                 _logger.LogInformation($"Deleting {deleteSkillList.Count()} existing skills for employees."); // Log update
                 await _employeeRepository.DeleteEmployeeSkills(deleteSkillList.Select(x=> x.Id)); // Update skills
             }
+            _logger.LogInformation("Done mapping employee skills"); 
         }
     }
 }

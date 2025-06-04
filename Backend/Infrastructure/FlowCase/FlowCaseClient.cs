@@ -3,6 +3,7 @@ using Domain.Models;
 using Infrastructure.Common;
 using Infrastructure.FlowCase.Mappers;
 using Infrastructure.FlowCase.Models;
+using Infrastructure.Persistance.Models;
 using Infrastructure.Severa;
 using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Client;
@@ -53,19 +54,17 @@ namespace Infrastructure.FlowCase
             var response = await MakeRequest<FlowcaseSkillModel>(uri);
             if (!response.IsSuccess)
             {
+                _logger.LogError($"Failed to retrieve skills for user {userId} and CV {cvId}: {response.Message}");
                 throw new Exception($"Failed to retrieve skills: {response.Message}");
             }
             foreach (var technology in response.Data.Technologies)
             {
-                foreach (var skill in technology.TechnologySkills)
-                {
-                    if (string.IsNullOrWhiteSpace(skill.Tags.Name))
-                    {
-                        _logger.LogWarning($"Skill with ID {skill.SkillId} has an empty name and will be skipped.");
-                        continue;
-                    }
-                    skills.Add(skill.ToEmployeeSkillDto());
-                }
+                technology.TechnologySkills = technology.TechnologySkills
+                    .Where(x => !string.IsNullOrWhiteSpace(x.Tags.Name))
+                    .ToList();
+
+                var addedSkill = technology.TechnologySkills.Select(x => x.ToEmployeeSkillDto()).ToList();
+                skills.AddRange(addedSkill);
             }
             return skills;
         }
@@ -90,20 +89,18 @@ namespace Infrastructure.FlowCase
             var response = await MakeRequest<List<FlowcaseSkillModel>>(uri);
             if (!response.IsSuccess)
             {
+                _logger.LogError($"Failed to retrieve skills from Masterdata: {response.Message}");
                 throw new Exception($"Failed to retrieve skills: {response.Message}");
             }
 
             while (response.Data != null && response.Data.Count > 0)
             {
-                foreach (var skill in response.Data)
-                {
-                    if (string.IsNullOrWhiteSpace(skill.Values.Name))
-                    {
-                        _logger.LogWarning($"Skill with ID {skill.SkillId} has an empty name and will be skipped.");
-                        continue;
-                    }
-                    skills.Add(skill.ToSkillDto());
-                }
+                response.Data = response.Data
+                    .Where(x => !string.IsNullOrWhiteSpace(x.Values.Name))
+                    .ToList();
+
+                var addedSkill = response.Data.Select(x => x.ToSkillDto()).ToList();
+                skills.AddRange(addedSkill);
 
                 offset += limit;
                 uri = $"api/v1/masterdata/technologies/tags?offset={offset}&limit={limit}";
@@ -112,7 +109,7 @@ namespace Infrastructure.FlowCase
 
             return skills;
         }
-        
+
         public async Task<List<FlowcaseUserModel>> GetUsersAsync()
         {
             List<FlowcaseUserModel> users = new();
@@ -126,10 +123,7 @@ namespace Infrastructure.FlowCase
             }
             while (response.Data != null && response.Data.Count > 0)
             {
-                foreach (var user in response.Data)
-                {
-                    users.Add(user);
-                }
+                users.AddRange(response.Data);
                 offset += limit;
                 uri = $"api/v2/users/search?from={offset}&size={limit}&sort_by=country&deactivated=false{GetOfficeIdsArrayString()}";
                 response = await MakeRequest<List<FlowcaseUserModel>>(uri);
@@ -143,7 +137,7 @@ namespace Infrastructure.FlowCase
             var uri = $"/api/v1/users/find?email={Uri.EscapeDataString(email)}";
             return await MakeRequest<FlowcaseUserModel>(uri);
         }
-        
+
         private async Task<FlowcaseReturnModel<T>> MakeRequest<T>(string path)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, path);
@@ -172,7 +166,7 @@ namespace Infrastructure.FlowCase
                 returnModel.StatusCode = responseMessage.StatusCode;
 
             }
-           return returnModel;
+            return returnModel;
 
         }
         private string GetOfficeIdsArrayString()

@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(SursenContext))]
-    [Migration("20250604083158_SkillUpdate")]
+    [Migration("20250604121049_SkillUpdate")]
     partial class SkillUpdate
     {
         /// <inheritdoc />
@@ -184,7 +184,10 @@ namespace Infrastructure.Migrations
                         .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("FlowCaseCVId")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(24)
+                        .IsUnicode(false)
+                        .HasColumnType("char(24)")
+                        .IsFixedLength();
 
                     b.Property<string>("FlowCaseId")
                         .HasMaxLength(24)

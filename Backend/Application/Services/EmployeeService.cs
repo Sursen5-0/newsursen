@@ -311,6 +311,7 @@ namespace Application.Services
 
             if (updateList.Any())
             {
+                _logger.LogInformation("Saving employees with FlowCase ID and CV ID");
                 await _employeeRepository.UpdateEmployeesAsync(updateList);
             }
         }

@@ -27,6 +27,7 @@ namespace Infrastructure.FlowCase
         private const string FLOWCASE_KEY = "FLOWCASE_KEY";
         private readonly ILogger<FlowCaseClient> _logger;
         private readonly string[] _officeNames ={"Minds"}; // Add more office names if needed
+        private readonly string officeId = "66586fcb0223890048fd218c"; //IT Minds office ID
 
         public FlowCaseClient(ISecretClient secretClient, HttpClient httpClient, ILogger<FlowCaseClient> logger)
         {
@@ -118,7 +119,7 @@ namespace Infrastructure.FlowCase
             List<FlowcaseUserModel> users = new();
             int offset = 0;
             int limit = 500;
-            var uri = $"api/v2/users/search?from={offset}&size={limit}&sort_by=country&deactivated=false";
+            var uri = $"api/v2/users/search?from={offset}&size={limit}&sort_by=country&deactivated=false&office_ids[]={officeId}";
             var response = await MakeRequest<List<FlowcaseUserModel>>(uri);
             if (!response.IsSuccess)
             {
@@ -128,15 +129,10 @@ namespace Infrastructure.FlowCase
             {
                 foreach (var user in response.Data)
                 {
-                    if (!_officeNames.Any(o => user.OfficeName.Equals(o, StringComparison.OrdinalIgnoreCase))) // Skip users not in Minds office
-                    {
-                        _logger.LogWarning($"User with ID {user.UserId} is not in Minds office and will be skipped.");
-                        continue;
-                    }
                     users.Add(user);
                 }
                 offset += limit;
-                uri = $"api/v2/users/search?from={offset}&size={limit}&sort_by=country&deactivated=false";
+                uri = $"api/v2/users/search?from={offset}&size={limit}&sort_by=country&deactivated=false&office_ids[]={officeId}";
                 response = await MakeRequest<List<FlowcaseUserModel>>(uri);
             }
             return users;

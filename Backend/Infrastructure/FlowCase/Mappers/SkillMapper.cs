@@ -18,7 +18,6 @@ namespace Infrastructure.FlowCase.Mappers
             {
                 ExternalId = skill.SkillId,
                 SkillName = skill.Values.Name,
-                SkillTotalDurationInYears = skill.TotalDurationInYears
             };
         }
         public static EmployeeSkillDTO ToEmployeeSkillDto(this FlowcaseSkillModel skill)

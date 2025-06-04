@@ -11,6 +11,5 @@ namespace Domain.Models
         public Guid Id { get; set; }
         public string ExternalId { get; set; } = null!;
         public string SkillName { get; set; } = null!;
-        public byte SkillTotalDurationInYears { get; set; } = 0;
     }
 }

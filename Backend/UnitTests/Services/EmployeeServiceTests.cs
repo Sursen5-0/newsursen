@@ -277,7 +277,7 @@ namespace UnitTests.Services
             var flowcaseSkills = new List<SkillDTO>(); // No skills in repository
             var flowcaseSkillFromCv = new List<SkillDTO>
             {
-                new SkillDTO { Id = skillId, SkillName = "C#", SkillTotalDurationInYears = 5 }
+                new SkillDTO { Id = skillId, SkillName = "C#" }
             };
 
             _employeeRepoMock.Setup(x => x.GetEmployees(It.IsAny<bool>())).ReturnsAsync(employees);

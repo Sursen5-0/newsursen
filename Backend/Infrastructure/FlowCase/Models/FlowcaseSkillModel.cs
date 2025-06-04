@@ -31,9 +31,6 @@ namespace Infrastructure.FlowCase.Models
         public List<FlowcaseSkillModel> TechnologySkills { get; set; } = new();
     }
 
-    /// <summary>
-    /// Used when taking name from masterdata endpoint
-    /// </summary>
     public class FlowcaseSkillName
     {
         [JsonPropertyName("dk")]

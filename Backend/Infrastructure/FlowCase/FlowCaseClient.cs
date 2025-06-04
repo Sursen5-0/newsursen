@@ -1,6 +1,7 @@
 using Domain.Interfaces.ExternalClients;
 using Domain.Models;
 using Infrastructure.Common;
+using Infrastructure.FlowCase.Mappers;
 using Infrastructure.FlowCase.Models;
 using Infrastructure.Severa;
 using Microsoft.Extensions.Logging;
@@ -45,31 +46,15 @@ namespace Infrastructure.FlowCase
         /// <returns>A task that represents the asynchronous operation. The task result contains a list of <see cref="SkillDTO"/>
         /// objects representing the skills extracted from the CV.</returns>
         /// <exception cref="Exception">Thrown if the operation to retrieve skills fails, including details of the failure in the exception message.</exception>
-        public async Task<List<SkillDTO>> GetSkillsFromCVAsync(string userId, string cvId)
+        public async Task<List<EmployeeSkillDTO>> GetSkillsFromCVAsync(string userId, string cvId)
         {
-            List<SkillDTO> skills = new List<SkillDTO>();
+            List<EmployeeSkillDTO> skills = new List<EmployeeSkillDTO>();
             var uri = $"api/v3/cvs/{userId}/{cvId}";
             var response = await MakeRequest<FlowcaseSkillModel>(uri);
             if (!response.IsSuccess)
             {
                 throw new Exception($"Failed to retrieve skills: {response.Message}");
             }
-
-            /*foreach (var skill in response.Data.Technologies)
-            {
-                if (string.IsNullOrWhiteSpace(skill.Values.Name))
-                {
-                    _logger.LogWarning($"Skill with ID {skill.SkillId} has an empty name and will be skipped.");
-                    continue;
-                }
-                var skillDto = new SkillDTO
-                {
-                    SkillId = skill.SkillId,
-                    SkillName = skill.Values.Name,
-                    SkillTotalDurationInYears = skill.TotalDurationInYears,
-                };
-                skills.Add(skillDto);
-            }*/
             foreach (var technology in response.Data.Technologies)
             {
                 foreach (var skill in technology.TechnologySkills)
@@ -79,13 +64,7 @@ namespace Infrastructure.FlowCase
                         _logger.LogWarning($"Skill with ID {skill.SkillId} has an empty name and will be skipped.");
                         continue;
                     }
-                    var skillDto = new SkillDTO
-                    {
-                        SkillId = skill.SkillId,
-                        SkillName = skill.Values.Name,
-                        SkillTotalDurationInYears = skill.TotalDurationInYears,
-                    };
-                    skills.Add(skillDto);
+                    skills.Add(skill.ToEmployeeSkillDto());
                 }
             }
             return skills;
@@ -123,7 +102,7 @@ namespace Infrastructure.FlowCase
                         _logger.LogWarning($"Skill with ID {skill.SkillId} has an empty name and will be skipped.");
                         continue;
                     }
-                    skills.Add(skill.ToDto());
+                    skills.Add(skill.ToSkillDto());
                 }
 
                 offset += limit;

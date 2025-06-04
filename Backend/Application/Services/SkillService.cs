@@ -25,12 +25,12 @@ namespace Application.Services
             }
 
             var existingSkills = await _skillRepository.GetAllSkillsAsync();
-            var existingSkillId = existingSkills.Select(s => s.SkillId).ToHashSet();
+            var existingSkillId = existingSkills.Select(s => s.ExternalId).ToHashSet();
 
             var newSkills = new List<SkillDTO>();
             foreach (var skill in skills)
             {
-                if (!existingSkillId.Contains(skill.SkillId))
+                if (!existingSkillId.Contains(skill.ExternalId))
                 {
                     _logger.LogInformation($"Adding new skill: {skill.SkillName}");
                     newSkills.Add(skill);

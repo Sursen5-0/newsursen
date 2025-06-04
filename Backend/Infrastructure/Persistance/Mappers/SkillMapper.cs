@@ -17,7 +17,7 @@ namespace Infrastructure.Persistance.Mappers
             {
                 Id = skill.Id,
                 SkillName = skill.Name,
-                SkillId = skill.ExternalId
+                ExternalId = skill.ExternalId
             };
         }
 
@@ -27,7 +27,7 @@ namespace Infrastructure.Persistance.Mappers
             {
                 Id = Guid.NewGuid(),
                 Name = skill.SkillName,
-                ExternalId = skill.SkillId
+                ExternalId = skill.ExternalId
             };
         }
     }

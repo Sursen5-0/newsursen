@@ -25,5 +25,8 @@ namespace Domain.Interfaces.Repositories
 
         public Task UpdateEmployeeSkills(IEnumerable<EmployeeSkillDTO> employeeSkills);
 
+        Task<IEnumerable<EmployeeSkillDTO>> GetEmployeeSkills();
+        Task DeleteEmployeeSkills(IEnumerable<Guid> ids);
+
     }
 }

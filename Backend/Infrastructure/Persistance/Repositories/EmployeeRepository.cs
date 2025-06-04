@@ -72,7 +72,7 @@ namespace Infrastructure.Persistance.Repositories
             foreach (var employee in employees)
             {
                 var id = employeeDTOs.FirstOrDefault(x => x.Email == employee.Email)?.Id;
-                if(id == null)
+                if (id == null)
                 {
                     _logger.LogWarning("Unable to find email for user with email: {Email}", employee.Email);
                     continue;
@@ -165,24 +165,15 @@ namespace Infrastructure.Persistance.Repositories
 
         public async Task UpdateEmployeeSkills(IEnumerable<EmployeeSkillDTO> employeeSkills)
         {
-            var employeeIdList = _db.Employees.Select(e => e.Id).ToList();
-            var skillList = _db.EmployeeSkills.Where(x => employeeSkills.Select(c => c.EmployeeId).Contains(x.EmployeeId)).ToDictionary(x => x.EmployeeId);
+            var skillList = _db.EmployeeSkills.ToDictionary(x => new { x.EmployeeId, x.ExternalId });
             foreach (var skill in employeeSkills)
             {
-                if (!employeeIdList.Contains(skill.EmployeeId))
-                {
-                    _logger.LogWarning($"EmployeeId {skill.EmployeeId} not found for skills, not inserting data.");
-                    continue;
-                }
-                if (skill.EmployeeId == default || !skillList.ContainsKey(skill.EmployeeId))
-                {
-                    await _db.EmployeeSkills.AddAsync(EmployeeSkillMapper.ToEntity(skill));
-                }
-                else
-                {
-                    var dbSkill = skillList[skill.EmployeeId];
-                    _db.Entry(dbSkill).CurrentValues.SetValues(EmployeeSkillMapper.ToEntity(skill));
-                }
+                var dbSkill = skillList[new { skill.EmployeeId, skill.ExternalId }];
+                var updatedSkill = skill.ToEntity();
+                updatedSkill.Id = dbSkill.Id;
+                updatedSkill.UpdatedAt = DateTime.UtcNow;
+                updatedSkill.CreatedAt = dbSkill.CreatedAt;
+                _db.Entry(dbSkill).CurrentValues.SetValues(updatedSkill);
             }
             await _db.SaveChangesAsync();
         }
@@ -191,6 +182,7 @@ namespace Infrastructure.Persistance.Repositories
         {
 
             var employeeIdList = _db.Employees.Select(e => e.Id).ToList();
+            var items = new List<EmployeeSkill>();
             foreach (var skill in employeeSkills)
             {
                 if (!employeeIdList.Contains(skill.EmployeeId))
@@ -198,10 +190,22 @@ namespace Infrastructure.Persistance.Repositories
                     _logger.LogWarning($"EmployeeId {skill.EmployeeId} not found for skills, not inserting data.");
                     continue;
                 }
-                await _db.EmployeeSkills.AddAsync(EmployeeSkillMapper.ToEntity(skill));
+                items.Add(skill.ToEntity());
             }
+            _db.EmployeeSkills.AddRange(items);
             await _db.SaveChangesAsync();
         }
 
+        public async Task<IEnumerable<EmployeeSkillDTO>> GetEmployeeSkills()
+        {
+            return await _db.EmployeeSkills.Select(x => x.ToDto()).ToListAsync();
+        }
+
+        public async Task DeleteEmployeeSkills(IEnumerable<Guid> ids)
+        {
+            var itemsToRemove = _db.EmployeeSkills.Where(x => ids.Contains(x.Id));
+            _db.EmployeeSkills.RemoveRange(itemsToRemove);
+            await _db.SaveChangesAsync();
+        }
     }
 }

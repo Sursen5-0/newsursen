@@ -9,9 +9,8 @@ namespace Domain.Models
     public class SkillDTO
     {
         public Guid Id { get; set; }
-        public string SkillId { get; set; } = null!;
+        public string ExternalId { get; set; } = null!;
         public string SkillName { get; set; } = null!;
-        public byte SkillProficiency { get; set; } = 0;
         public byte SkillTotalDurationInYears { get; set; } = 0;
     }
 }

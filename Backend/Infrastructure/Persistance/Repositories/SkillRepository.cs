@@ -17,7 +17,7 @@ namespace Infrastructure.Persistance.Repositories
         {
             var skillEntity = skills.Select(skill => skill.ToEntity()).ToList();
             _db.Skills.AddRange(skillEntity);
-            _db.SaveChangesAsync();
+            await _db.SaveChangesAsync();
         }
 
         public async Task<IEnumerable<SkillDTO>> GetAllSkillsAsync()

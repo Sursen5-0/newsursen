@@ -12,7 +12,6 @@ namespace Application.Services
         /// <summary>
         /// Adds or updates skills in the SKills table based on the skills retrieved from Flowcase.
         /// </summary>
-        /// <returns></returns>
         public async Task SynchronizeSkillsFromFlowcaseAsync()
         {
             _logger.LogInformation("Synchronizing skills from Flowcase");

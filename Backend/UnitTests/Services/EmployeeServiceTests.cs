@@ -251,38 +251,329 @@ namespace UnitTests.Services
                 list.Any(e => e.FlowCaseId == "fc1" && e.CvId == "cv1"))), Times.Once);
         }
 
+
+
+
+
+
+
+
+
+
+
         [Fact]
-        public async Task SynchronizeEmployeesWithFlowcaseIdsAsync_DoesNothing_WhenNoFlowcaseUsers()
+        public async Task SynchronizeEmployeesAsync_WithNoEmployeesFromEntra_DoesNotCallRepo()
         {
             // Arrange
-            _flowcaseClientMock.Setup(x => x.GetUsersAsync()).ReturnsAsync(new List<FlowcaseUserModel>());
+            _entraClientMock
+                .Setup(x => x.GetAllEmployeesAsync())
+                .ReturnsAsync((List<EmployeeDTO>)null);
 
             // Act
-            await _sut.SynchronizeEmployeesWithFlowcaseIdsAsync();
+            await _sut.SynchronizeEmployeesAsync();
 
             // Assert
+            _employeeRepoMock.Verify(x => x.GetEmployees(It.IsAny<bool>()), Times.Never);
+            _employeeRepoMock.Verify(x => x.InsertEmployeesAsync(It.IsAny<IEnumerable<EmployeeDTO>>()), Times.Never);
             _employeeRepoMock.Verify(x => x.UpdateEmployeesAsync(It.IsAny<IEnumerable<EmployeeDTO>>()), Times.Never);
         }
 
         [Fact]
-        public async Task SynchronizeEmployeeSkillsAsync_LogsAndSkips_WhenNoSkillsFound()
+        public async Task SynchronizeEmployeesAsync_WithOnlyNullDTOs_SkipsAll()
         {
             // Arrange
-            var employeeId = Guid.NewGuid();
-            var employees = new List<EmployeeDTO>
-            {
-                new EmployeeDTO { Id = employeeId, FlowCaseId = "fc1", CvId = "cv1" }
-            };
-
-            _employeeRepoMock.Setup(x => x.GetEmployees(It.IsAny<bool>())).ReturnsAsync(employees);
-            _skillRepositoryMock.Setup(x => x.GetAllSkillsAsync()).ReturnsAsync(new List<SkillDTO>());
-            _flowcaseClientMock.Setup(x => x.GetSkillsFromCVAsync("fc1", "cv1")).ReturnsAsync(new List<EmployeeSkillDTO>());
+            var dtos = new List<EmployeeDTO> { null, null };
+            _entraClientMock
+                .Setup(x => x.GetAllEmployeesAsync())
+                .ReturnsAsync(dtos);
 
             // Act
-            await _sut.SynchronizeEmployeeSkillsAsync();
+            await _sut.SynchronizeEmployeesAsync();
 
             // Assert
-            _employeeRepoMock.Verify(x => x.InsertEmployeeSkills(It.IsAny<IEnumerable<EmployeeSkillDTO>>()), Times.Never);
+            _employeeRepoMock.Verify(x => x.GetEmployees(It.IsAny<bool>()), Times.Never);
+            _employeeRepoMock.Verify(x => x.InsertEmployeesAsync(It.IsAny<IEnumerable<EmployeeDTO>>()), Times.Never);
+            _employeeRepoMock.Verify(x => x.UpdateEmployeesAsync(It.IsAny<IEnumerable<EmployeeDTO>>()), Times.Never);
         }
+
+        [Fact]
+        public async Task SynchronizeEmployeesAsync_InsertsAndUpdatesCorrectly()
+        {
+            // Arrange
+            var existing1 = new EmployeeDTO { EntraId = Guid.NewGuid(), Id = Guid.NewGuid() };
+            var existing2 = new EmployeeDTO { EntraId = Guid.NewGuid(), Id = Guid.NewGuid() };
+            _employeeRepoMock
+                .Setup(x => x.GetEmployees(It.IsAny<bool>()))
+                .ReturnsAsync(new List<EmployeeDTO> { existing1, existing2 });
+
+            var newDto = new EmployeeDTO { EntraId = Guid.NewGuid(), FirstName = "John", LastName = "Doe" };
+            var updatedDto = new EmployeeDTO { EntraId = existing1.EntraId, FirstName = "Jane", LastName = "Smith" };
+            var dtos = new List<EmployeeDTO> { newDto, updatedDto };
+            _entraClientMock
+                .Setup(x => x.GetAllEmployeesAsync())
+                .ReturnsAsync(dtos);
+
+            List<EmployeeDTO> inserted = null;
+            List<EmployeeDTO> updated = null;
+            _employeeRepoMock
+                .Setup(x => x.InsertEmployeesAsync(It.IsAny<IEnumerable<EmployeeDTO>>()))
+                .Callback<IEnumerable<EmployeeDTO>>(list => inserted = list.ToList())
+                .Returns(Task.CompletedTask);
+            _employeeRepoMock
+                .Setup(x => x.UpdateEmployeesAsync(It.IsAny<IEnumerable<EmployeeDTO>>()))
+                .Callback<IEnumerable<EmployeeDTO>>(list => updated = list.ToList())
+                .Returns(Task.CompletedTask);
+
+            // Act
+            await _sut.SynchronizeEmployeesAsync();
+
+            // Assert
+            Assert.Single(inserted);
+            Assert.Equal(newDto.EntraId, inserted[0].EntraId);
+            Assert.Single(updated);
+            Assert.Equal(updatedDto.EntraId, updated[0].EntraId);
+        }
+
+        [Fact]
+        public async Task SynchronizeEmployeesAsync_SetsManagerIdForNewDtos()
+        {
+            // Arrange
+            var manager = new EmployeeDTO { EntraId = Guid.NewGuid(), Id = Guid.NewGuid() };
+            _employeeRepoMock
+                .Setup(x => x.GetEmployees(It.IsAny<bool>()))
+                .ReturnsAsync(new List<EmployeeDTO> { manager });
+
+            var newDto = new EmployeeDTO
+            {
+                EntraId = Guid.NewGuid(),
+                FirstName = "Alice",
+                LastName = "Brown",
+                EntraManagerId = manager.EntraId
+            };
+            _entraClientMock
+                .Setup(x => x.GetAllEmployeesAsync())
+                .ReturnsAsync(new List<EmployeeDTO> { newDto });
+
+            List<EmployeeDTO> inserted = null;
+            _employeeRepoMock
+                .Setup(x => x.InsertEmployeesAsync(It.IsAny<IEnumerable<EmployeeDTO>>()))
+                .Callback<IEnumerable<EmployeeDTO>>(list => inserted = list.ToList())
+                .Returns(Task.CompletedTask);
+
+            // Act
+            await _sut.SynchronizeEmployeesAsync();
+
+            // Assert
+            Assert.Single(inserted);
+            Assert.Equal(manager.Id, inserted[0].ManagerId);
+        }
+
+        [Fact]
+        public async Task SynchronizeEmployeesAsync_WithNullManager_LogsWarning()
+        {
+            // Arrange
+            _employeeRepoMock
+                .Setup(x => x.GetEmployees(It.IsAny<bool>()))
+                .ReturnsAsync(new List<EmployeeDTO>());
+
+            var dto = new EmployeeDTO
+            {
+                EntraId = Guid.NewGuid(),
+                FirstName = "Bob",
+                LastName = "Taylor",
+                EntraManagerId = null
+            };
+            _entraClientMock
+                .Setup(x => x.GetAllEmployeesAsync())
+                .ReturnsAsync(new List<EmployeeDTO> { dto });
+
+            _employeeRepoMock
+                .Setup(x => x.InsertEmployeesAsync(It.IsAny<IEnumerable<EmployeeDTO>>()))
+                .Returns(Task.CompletedTask);
+
+            // Act
+            await _sut.SynchronizeEmployeesAsync();
+
+            // Assert
+            _loggerMock.VerifyLog(LogLevel.Warning, Times.Once());
+        }
+
+
+
+        [Fact]
+        public async Task SynchronizeAbsence_WhenGetAbsenceReturnsNull_LogsWarningAndReturns()
+        {
+            // Arrange
+            var now = DateTime.UtcNow;
+            _JobExecutionRepoMock
+                .Setup(x => x.GetLatestSuccessfulJobExecutionByName(nameof(EmployeeService.SynchronizeAbsence)))
+                .ReturnsAsync(now);
+
+            _severaClientMock
+                .Setup(x => x.GetAbsence(It.IsAny<DateTime?>(), null))
+                .ReturnsAsync((IEnumerable<AbsenceDTO>)null);
+
+            // Act
+            await _sut.SynchronizeAbsence();
+
+            // Assert
+            _loggerMock.VerifyLog(LogLevel.Warning, Times.Once());
+
+            _employeeRepoMock.Verify(x => x.GetEmployees(It.IsAny<bool>()), Times.Never);
+            _employeeRepoMock.Verify(x => x.GetAbsenceByExternalIDs(It.IsAny<IEnumerable<Guid>>()), Times.Never);
+            _employeeRepoMock.Verify(x => x.UpdateAbsences(It.IsAny<IEnumerable<AbsenceDTO>>()), Times.Never);
+            _employeeRepoMock.Verify(x => x.InsertAbsences(It.IsAny<IEnumerable<AbsenceDTO>>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task SynchronizeAbsence_WhenGetAbsenceReturnsEmpty_LogsWarningAndReturns()
+        {
+            // Arrange
+            var now = DateTime.UtcNow;
+            _JobExecutionRepoMock
+                .Setup(x => x.GetLatestSuccessfulJobExecutionByName(nameof(EmployeeService.SynchronizeAbsence)))
+                .ReturnsAsync(now);
+
+            _severaClientMock
+                .Setup(x => x.GetAbsence(It.IsAny<DateTime?>(), null))
+                .ReturnsAsync(new List<AbsenceDTO>());
+
+            // Act
+            await _sut.SynchronizeAbsence();
+
+            // Assert
+            _loggerMock.VerifyLog(LogLevel.Warning, Times.Once());
+
+            _employeeRepoMock.Verify(x => x.GetEmployees(It.IsAny<bool>()), Times.Never);
+            _employeeRepoMock.Verify(x => x.GetAbsenceByExternalIDs(It.IsAny<IEnumerable<Guid>>()), Times.Never);
+            _employeeRepoMock.Verify(x => x.UpdateAbsences(It.IsAny<IEnumerable<AbsenceDTO>>()), Times.Never);
+            _employeeRepoMock.Verify(x => x.InsertAbsences(It.IsAny<IEnumerable<AbsenceDTO>>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task SynchronizeAbsence_NoMatchingEmployees_LogsWarningAndDoesNotCallUpdateOrInsert()
+        {
+            // Arrange
+            var now = DateTime.UtcNow;
+            var abs1 = new AbsenceDTO
+            {
+                ExternalId = Guid.NewGuid(),
+                SeveraEmployeeId = Guid.NewGuid(),
+                FromDate = DateTime.Today,
+                ToDate = DateTime.Today.AddDays(1),
+                Type = "Vacation"
+            };
+            var absences = new List<AbsenceDTO> { abs1 };
+
+            _JobExecutionRepoMock
+                .Setup(x => x.GetLatestSuccessfulJobExecutionByName(nameof(EmployeeService.SynchronizeAbsence)))
+                .ReturnsAsync(now);
+
+            _severaClientMock
+                .Setup(x => x.GetAbsence(It.IsAny<DateTime?>(), null))
+                .ReturnsAsync(absences);
+
+            _employeeRepoMock
+                .Setup(x => x.GetEmployees(It.IsAny<bool>()))
+                .ReturnsAsync(new List<EmployeeDTO>());
+
+            _employeeRepoMock
+                .Setup(x => x.GetAbsenceByExternalIDs(It.IsAny<IEnumerable<Guid>>()))
+                .ReturnsAsync(new List<AbsenceDTO>());
+
+            // Act
+            await _sut.SynchronizeAbsence();
+
+            // Assert
+            _loggerMock.VerifyLog(LogLevel.Warning, Times.Once());
+
+            _employeeRepoMock.Verify(x => x.UpdateAbsences(It.Is<IEnumerable<AbsenceDTO>>(u => !u.Any())), Times.Once);
+            _employeeRepoMock.Verify(x => x.InsertAbsences(It.Is<IEnumerable<AbsenceDTO>>(i => !i.Any())), Times.Once);
+        }
+
+        [Fact]
+        public async Task SynchronizeAbsence_WithMatchingEmployees_CallsUpdateAndInsertCorrectly()
+        {
+            // Arrange
+            var now = DateTime.UtcNow;
+            var severaEmpId = Guid.NewGuid();
+            var dbEmployee = new EmployeeDTO { Id = Guid.NewGuid(), SeveraId = severaEmpId };
+            var absExistExternalId = Guid.NewGuid();
+            var absNewExternalId = Guid.NewGuid();
+
+            var absExisting = new AbsenceDTO
+            {
+                ExternalId = absExistExternalId,
+                SeveraEmployeeId = severaEmpId,
+                FromDate = DateTime.Today,
+                ToDate = DateTime.Today.AddDays(2),
+                Type = "Sick"
+            };
+
+            var absNew = new AbsenceDTO
+            {
+                ExternalId = absNewExternalId,
+                SeveraEmployeeId = severaEmpId,
+                FromDate = DateTime.Today.AddDays(3),
+                ToDate = DateTime.Today.AddDays(4),
+                Type = "Vacation"
+            };
+
+            var absences = new List<AbsenceDTO> { absExisting, absNew };
+
+            _JobExecutionRepoMock
+                .Setup(x => x.GetLatestSuccessfulJobExecutionByName(nameof(EmployeeService.SynchronizeAbsence)))
+                .ReturnsAsync(now);
+
+            _severaClientMock
+                .Setup(x => x.GetAbsence(It.IsAny<DateTime?>(), null))
+                .ReturnsAsync(absences);
+
+            _employeeRepoMock
+                .Setup(x => x.GetEmployees(It.IsAny<bool>()))
+                .ReturnsAsync(new List<EmployeeDTO> { dbEmployee });
+
+            var dbAbsenceDto = new AbsenceDTO
+            {
+                ExternalId = absExistExternalId,
+                SeveraEmployeeId = severaEmpId,
+                EmployeeId = dbEmployee.Id,
+                FromDate = DateTime.Today,
+                ToDate = DateTime.Today.AddDays(2),
+                Type = "Sick"
+            };
+            _employeeRepoMock
+                .Setup(x => x.GetAbsenceByExternalIDs(
+                    It.Is<IEnumerable<Guid>>(ids => ids.Contains(absExistExternalId) && ids.Contains(absNewExternalId))))
+                .ReturnsAsync(new List<AbsenceDTO> { dbAbsenceDto });
+
+            List<AbsenceDTO> updatedList = null;
+            List<AbsenceDTO> insertedList = null;
+
+            _employeeRepoMock
+                .Setup(x => x.UpdateAbsences(It.IsAny<IEnumerable<AbsenceDTO>>()))
+                .Callback<IEnumerable<AbsenceDTO>>(list => updatedList = list.ToList())
+                .Returns(Task.CompletedTask);
+
+            _employeeRepoMock
+                .Setup(x => x.InsertAbsences(It.IsAny<IEnumerable<AbsenceDTO>>()))
+                .Callback<IEnumerable<AbsenceDTO>>(list => insertedList = list.ToList())
+                .Returns(Task.CompletedTask);
+
+            // Act
+            await _sut.SynchronizeAbsence();
+
+            // Assert
+            Assert.All(absences, a => Assert.Equal(dbEmployee.Id, a.EmployeeId));
+
+            Assert.Single(updatedList);
+            Assert.Equal(absExistExternalId, updatedList[0].ExternalId);
+
+            Assert.Single(insertedList);
+            Assert.Equal(absNewExternalId, insertedList[0].ExternalId);
+        }
+
+
+
     }
 }

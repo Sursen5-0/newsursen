@@ -32,9 +32,10 @@ namespace Domain.Models
         public Guid EntraId { get; set; }
 
         public string? FlowCaseId { get; set; }
-
+        public string? CvId { get; set; }
         public Guid? ManagerId { get; set; }
         public Guid? EntraManagerId { get; set; }
         public string? UserPrincipalName { get; set; }
+
     }
 }

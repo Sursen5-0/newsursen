@@ -16,9 +16,12 @@ namespace Infrastructure.Persistance.Configurations
         {
             BaseConfigure(builder);
 
-            builder.HasKey(e => new { e.EmployeeId, e.SkillId });
+            builder.HasKey(e => e.Id);
 
             builder.Property(e => e.YearsExperience).HasColumnType("decimal(3, 1)");
+
+            builder.Property(e => e.Name).HasMaxLength(255);
+            builder.Property(e => e.ExternalId).HasMaxLength(24).IsFixedLength().IsUnicode(false);
 
             builder.HasOne(d => d.Employee)
                 .WithMany()
@@ -29,6 +32,7 @@ namespace Infrastructure.Persistance.Configurations
                 .WithMany()
                 .HasForeignKey(d => d.SkillId)
                 .OnDelete(DeleteBehavior.Cascade);
+
         }
     }
 }

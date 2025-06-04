@@ -9,6 +9,7 @@ using Infrastructure.Persistance.Repositories;
 using Infrastructure.Secrets;
 using Infrastructure.Severa;
 using Infrastructure.Entra;
+using Infrastructure.FlowCase;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
@@ -67,6 +68,9 @@ builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
 builder.Services.AddScoped<IJobExecutionRepository, JobExecutionRepository>();
 builder.Services.AddScoped<SeveraJobs>();
 builder.Services.AddScoped<EntraJobs>();
+builder.Services.AddScoped<FlowCaseJob>();
+builder.Services.AddScoped<ISkillService, SkillService>();
+builder.Services.AddScoped<ISkillRepository, SkillRepository>();
 builder.Services.AddDbContext<SursenContext>((services, options) =>
 {
     var secretClient = services.GetRequiredService<ISecretClient>();
@@ -100,6 +104,18 @@ builder.Services.AddHttpClient<IEntraClient, EntraClient>()
         return new RetryHandler(new HttpClientHandler(), logger);
     });
 
+
+builder.Services.AddHttpClient<IFlowCaseClient, FlowCaseClient>(client =>
+{
+    client.BaseAddress = new Uri("https://twoday.flowcase.com");
+})
+    .ConfigurePrimaryHttpMessageHandler(provider =>
+    {
+        var logger = provider.GetRequiredService<ILogger<RetryHandler>>();
+        return new RetryHandler(new HttpClientHandler(), logger);
+    });
+
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -132,6 +148,16 @@ using (var scope = app.Services.CreateScope())
         "SynchronizeEntraEmployees",
         () => scope.ServiceProvider.GetRequiredService<EntraJobs>().GetAllEmployeesEntra(),
         Cron.Daily);
+    jobManager.AddOrUpdate(
+        "SynchronizeSkillsToSkillsTable",
+        () => scope.ServiceProvider.GetRequiredService<FlowCaseJob>().SynchronizeSkillsToSkillsTable(), "0 0 31 2 *");
+    jobManager.AddOrUpdate(
+        "SynchronizeEmployeesWithFlowcaseIdsAsync",
+        () => scope.ServiceProvider.GetRequiredService<FlowCaseJob>().SynchronizeEmployeesWithFlowcaseIdsAsync(), "0 0 31 2 *");
+
+    jobManager.AddOrUpdate(
+        "SynchronizeEmployeeSkillsAsync",
+        () => scope.ServiceProvider.GetRequiredService<FlowCaseJob>().SynchronizeEmployeeSkillsAsync(), "0 0 31 2 *");
 }
 
 app.UseHangfireDashboard();

@@ -25,12 +25,20 @@ namespace UnitTests.Services
         private readonly Mock<ILogger<EmployeeService>> _loggerMock = new Mock<ILogger<EmployeeService>>();
         private readonly Mock<IEntraClient> _entraClientMock = new Mock<IEntraClient>();
         private readonly Mock<IJobExecutionRepository> _JobExecutionRepoMock = new Mock<IJobExecutionRepository>();
+        private readonly Mock<IFlowCaseClient> _flowcaseClientMock = new Mock<IFlowCaseClient>();
+        private readonly Mock<ISkillRepository> _skillRepositoryMock = new Mock<ISkillRepository>();
         private EmployeeService _sut;
 
         public EmployeeServiceTests()
         {
-            _sut = new EmployeeService(_severaClientMock.Object, _entraClientMock.Object, _employeeRepoMock.Object, _projectRepoMock.Object, _loggerMock.Object, _JobExecutionRepoMock.Object);
-
+            _sut = new EmployeeService(_severaClientMock.Object,
+                _entraClientMock.Object,
+                _flowcaseClientMock.Object,
+                _employeeRepoMock.Object,
+                _skillRepositoryMock.Object,
+                _projectRepoMock.Object,
+                _loggerMock.Object,
+                _JobExecutionRepoMock.Object);
         }
         [Fact]
         public async Task SynchronizeContracts_WithNoEmployees_DoesntCallGetWorkContractByUserId()
@@ -39,6 +47,10 @@ namespace UnitTests.Services
             var emptyEmployeeList = new List<EmployeeDTO>();
             _employeeRepoMock.Setup(x => x.GetEmployees(It.IsAny<bool>())).ReturnsAsync(emptyEmployeeList);
             _employeeRepoMock.Setup(x => x.InsertEmployeeContracts(It.IsAny<IEnumerable<EmployeeContractDTO>>())).Verifiable();
+
+            _employeeRepoMock.Setup(x => x.GetEmployees(It.IsAny<bool>())).ReturnsAsync(emptyEmployeeList);
+            _employeeRepoMock.Setup(x => x.InsertEmployeeContracts(It.IsAny<IEnumerable<EmployeeContractDTO>>())).Verifiable();
+
 
             // Act
             await _sut.SynchronizeContracts();
@@ -175,7 +187,7 @@ namespace UnitTests.Services
             _projectRepoMock.Setup(x => x.GetProjects(It.IsAny<bool>())).ReturnsAsync(new List<ProjectDTO>());
             _severaClientMock.Setup(x => x.GetProjects(It.IsAny<DateTime?>(), It.IsAny<int?>())).ReturnsAsync(severaProjects);
             _employeeRepoMock.Setup(x => x.GetEmployees(It.IsAny<bool>())).ReturnsAsync(employees);
-            
+
             // Act
             await _sut.SynchronizeProjects();
 
@@ -212,6 +224,31 @@ namespace UnitTests.Services
             // Assert
             _projectRepoMock.Verify(x => x.InsertProjects(It.Is<List<ProjectDTO>>(x => x.Count == 0)), Times.Once);
             _projectRepoMock.Verify(x => x.UpdateProjects(It.Is<List<ProjectDTO>>(x => x.Count == 1)), Times.Once);
+        }
+
+        [Fact]
+        public async Task SynchronizeEmployeesWithFlowcaseIdsAsync_UpdatesEmployees_WhenFlowcaseIdsMissing()
+        {
+            // Arrange
+            var flowcaseUsers = new List<FlowcaseUserModel>
+            {
+                new FlowcaseUserModel { UserId = "fc1", DefaultCvId = "cv1", Name = "Test User", Email = "test@example.com" }
+            };
+            var existingEmployees = new List<EmployeeDTO>
+            {
+                new EmployeeDTO { Id = Guid.NewGuid(), Email = "test@example.com", FlowCaseId = null, CvId = null }
+            };
+
+            _flowcaseClientMock.Setup(x => x.GetUsersAsync()).ReturnsAsync(flowcaseUsers);
+            _employeeRepoMock.Setup(x => x.GetEmployees(It.IsAny<bool>())).ReturnsAsync(existingEmployees);
+            _employeeRepoMock.Setup(x => x.UpdateEmployeesAsync(It.IsAny<IEnumerable<EmployeeDTO>>())).Returns(Task.CompletedTask).Verifiable();
+
+            // Act
+            await _sut.SynchronizeEmployeesWithFlowcaseIdsAsync();
+
+            // Assert
+            _employeeRepoMock.Verify(x => x.UpdateEmployeesAsync(It.Is<IEnumerable<EmployeeDTO>>(list =>
+                list.Any(e => e.FlowCaseId == "fc1" && e.CvId == "cv1"))), Times.Once);
         }
 
 

@@ -21,6 +21,8 @@ namespace Infrastructure.Persistance.Configurations
             builder.Property(e => e.Id).ValueGeneratedNever();
             builder.Property(e => e.Name)
                 .HasMaxLength(255);
+            builder.Property(e => e.ExternalId)
+                .HasMaxLength(24).IsFixedLength().IsUnicode(false);
         }
     }
 }

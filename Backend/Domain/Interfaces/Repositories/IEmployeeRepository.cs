@@ -21,6 +21,12 @@ namespace Domain.Interfaces.Repositories
         Task InsertEmployeesAsync(IEnumerable<EmployeeDTO> dtos);
         Task UpdateEmployeesAsync(IEnumerable<EmployeeDTO> dtos);
 
+        public Task InsertEmployeeSkills(IEnumerable<EmployeeSkillDTO> employeeSkills);
+
+        public Task UpdateEmployeeSkills(IEnumerable<EmployeeSkillDTO> employeeSkills);
+
+        Task<IEnumerable<EmployeeSkillDTO>> GetEmployeeSkills();
+        Task DeleteEmployeeSkills(IEnumerable<Guid> ids);
 
     }
 }

@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Text.Json.Serialization;
 
-namespace Infrastructure.FlowCase.Models
+namespace Domain.Models
 {
     public class FlowcaseUserModel
     {
@@ -14,5 +14,14 @@ namespace Infrastructure.FlowCase.Models
 
         [JsonPropertyName("default_cv_id")]
         public string DefaultCvId { get; set; }
+
+        [JsonPropertyName("office_name")]
+        public string? OfficeName { get; set; }
+
+        [JsonPropertyName("name")]
+        public string Name { get; set; }
+
+        [JsonPropertyName("email")]
+        public string Email { get; set; }
     }
 }

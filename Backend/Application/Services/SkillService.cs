@@ -45,6 +45,7 @@ namespace Application.Services
                 _logger.LogInformation($"Adding {newSkills.Count} new skills to the database.");
                 await _skillRepository.AddSkillAsync(newSkills);
             }
+            _logger.LogInformation("Skill synchronization completed successfully.");
         }
     
     }

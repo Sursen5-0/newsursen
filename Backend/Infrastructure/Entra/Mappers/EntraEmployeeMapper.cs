@@ -23,7 +23,9 @@ namespace Infrastructure.Entra.Mappers
                 PersonalPhoneNumber = dto.PersonalPhoneNumber,
                 SeveraId = dto.SeveraId,
                 ManagerId = dto.ManagerId,
-                UserPrincipalName = dto.UserPrincipalName
+                UserPrincipalName = dto.UserPrincipalName,
+                FlowCaseId = dto.FlowCaseId,
+                FlowCaseCVId = dto.CvId,
             };
         }
 
@@ -41,6 +43,8 @@ namespace Infrastructure.Entra.Mappers
                 LeaveDate = entity.LeaveDate,
                 WorkPhoneNumber = entity.WorkPhoneNumber,
                 PersonalPhoneNumber = entity.PersonalPhoneNumber,
+                FlowCaseId = entity.FlowCaseId,
+                CvId = entity.FlowCaseCVId,
                 SeveraId = entity.SeveraId,
                 ManagerId = entity.ManagerId,
                 UserPrincipalName = entity.UserPrincipalName

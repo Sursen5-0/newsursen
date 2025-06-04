@@ -42,7 +42,6 @@ namespace UnitTests.Mappers
             // Arrange
             var dto = new ProjectPhaseDTO
             {
-                Id = Guid.NewGuid(), // DTO Id is not used in entity
                 Name = "Phase 2",
                 DeadLine = new DateTime(2026, 6, 30),
                 ExternalId = Guid.NewGuid(),

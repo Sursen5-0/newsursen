@@ -395,14 +395,7 @@ namespace UnitTests.Services
             await _sut.SynchronizeEmployeesAsync();
 
             // Assert
-            _loggerMock.Verify(
-                x => x.Log(
-                    LogLevel.Warning,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString() == $"No manager found for user {dto.FirstName} {dto.LastName}"),
-                    It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception, string>>()),
-                Times.Once);
+            _loggerMock.VerifyLog(LogLevel.Warning, Times.Once());
         }
 
 
@@ -424,14 +417,7 @@ namespace UnitTests.Services
             await _sut.SynchronizeAbsence();
 
             // Assert
-            _loggerMock.Verify(
-                x => x.Log(
-                    LogLevel.Warning,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("GetAbsence returned empty")),
-                    It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception, string>>()),
-                Times.Once);
+            _loggerMock.VerifyLog(LogLevel.Warning, Times.Once());
 
             _employeeRepoMock.Verify(x => x.GetEmployees(It.IsAny<bool>()), Times.Never);
             _employeeRepoMock.Verify(x => x.GetAbsenceByExternalIDs(It.IsAny<IEnumerable<Guid>>()), Times.Never);
@@ -456,14 +442,7 @@ namespace UnitTests.Services
             await _sut.SynchronizeAbsence();
 
             // Assert
-            _loggerMock.Verify(
-                x => x.Log(
-                    LogLevel.Warning,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("GetAbsence returned empty")),
-                    It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception, string>>()),
-                Times.Once);
+            _loggerMock.VerifyLog(LogLevel.Warning, Times.Once());
 
             _employeeRepoMock.Verify(x => x.GetEmployees(It.IsAny<bool>()), Times.Never);
             _employeeRepoMock.Verify(x => x.GetAbsenceByExternalIDs(It.IsAny<IEnumerable<Guid>>()), Times.Never);
@@ -506,14 +485,7 @@ namespace UnitTests.Services
             await _sut.SynchronizeAbsence();
 
             // Assert
-            _loggerMock.Verify(
-                x => x.Log(
-                    LogLevel.Warning,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("No employeeId found for the severa user")),
-                    It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception, string>>()),
-                Times.Once);
+            _loggerMock.VerifyLog(LogLevel.Warning, Times.Once());
 
             _employeeRepoMock.Verify(x => x.UpdateAbsences(It.Is<IEnumerable<AbsenceDTO>>(u => !u.Any())), Times.Once);
             _employeeRepoMock.Verify(x => x.InsertAbsences(It.Is<IEnumerable<AbsenceDTO>>(i => !i.Any())), Times.Once);

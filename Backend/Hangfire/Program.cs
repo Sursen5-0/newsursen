@@ -17,6 +17,7 @@ using Serilog.Events;
 using System.Net.Http.Headers;
 using Infrastructure.Common;
 using Microsoft.Extensions.Configuration;
+using Infrastructure;
 
 var token = Environment.GetEnvironmentVariable("DOPPLER_KEY");
 var environment = Environment.GetEnvironmentVariable("ENVIRONMENT");
@@ -61,104 +62,23 @@ builder.Services.AddHangfire(config =>
 });
 builder.Services.AddHangfireServer();
 
-builder.Services.AddHttpClient();
-builder.Services.AddScoped<IEmployeeService, EmployeeService>();
-builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
-builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
-builder.Services.AddScoped<IJobExecutionRepository, JobExecutionRepository>();
 builder.Services.AddScoped<SeveraJobs>();
 builder.Services.AddScoped<EntraJobs>();
-builder.Services.AddScoped<FlowCaseJob>();
+builder.Services.AddScoped<FlowCaseJobs>();
+builder.Services.AddScoped<JobRegistry>();
 builder.Services.AddScoped<ISkillService, SkillService>();
-builder.Services.AddScoped<ISkillRepository, SkillRepository>();
-builder.Services.AddDbContext<SursenContext>((services, options) =>
-{
-    var secretClient = services.GetRequiredService<ISecretClient>();
-    var connectionString = secretClient.GetSecretAsync("CONNECTIONSTRING").Result;
-    options.UseSqlServer(connectionString,
-        b => b.MigrationsAssembly("Infrastructure"));
-});
-
-builder.Services.AddScoped<ISecretClient, DopplerClient>(provider =>
-{
-    var clientFactory = provider.GetRequiredService<IHttpClientFactory>();
-    var httpClient = clientFactory.CreateClient("doppler");
-    httpClient.BaseAddress = new Uri("https://api.doppler.com/v3/");
-    return new DopplerClient(httpClient, token, environment);
-});
-builder.Services.AddHttpClient<ISeveraClient, SeveraClient>(client =>
-{
-    client.BaseAddress = new Uri("https://api.severa.visma.com/rest-api/v1.0/");
-})
-    .ConfigurePrimaryHttpMessageHandler(provider =>
-    {
-        var logger = provider.GetRequiredService<ILogger<RetryHandler>>();
-        return new RetryHandler(new HttpClientHandler(), logger);
-    });
-
-
-builder.Services.AddHttpClient<IEntraClient, EntraClient>()
-    .ConfigurePrimaryHttpMessageHandler(provider =>
-    {
-        var logger = provider.GetRequiredService<ILogger<RetryHandler>>();
-        return new RetryHandler(new HttpClientHandler(), logger);
-    });
-
-
-builder.Services.AddHttpClient<IFlowCaseClient, FlowCaseClient>(client =>
-{
-    client.BaseAddress = new Uri("https://twoday.flowcase.com");
-})
-    .ConfigurePrimaryHttpMessageHandler(provider =>
-    {
-        var logger = provider.GetRequiredService<ILogger<RetryHandler>>();
-        return new RetryHandler(new HttpClientHandler(), logger);
-    });
-
-
+builder.Services.RegisterInfrastructureServices(token, environment);
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
     var secretClient = scope.ServiceProvider.GetRequiredService<ISecretClient>();
     var hangfireConnection = secretClient.GetSecretAsync("HANGFIRE_CONNECTIONSTRING").Result;
-
+    var jobRegistry = scope.ServiceProvider.GetRequiredService<JobRegistry>();
     GlobalConfiguration.Configuration
         .UseSqlServerStorage(hangfireConnection)
         .UseSerilogLogProvider();
-    var jobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
-
-    jobManager.AddOrUpdate(
-        "SynchronizeEmployees",
-        () => scope.ServiceProvider.GetRequiredService<SeveraJobs>().SynchronizeEmployees(), "0 0 31 2 *");
-    jobManager.AddOrUpdate(
-        "SynchronizeContracts",
-        () => scope.ServiceProvider.GetRequiredService<SeveraJobs>().SynchronizeContracts(), "0 0 31 2 *");
-    jobManager.AddOrUpdate(
-        "SynchronizeAbsence",
-        () => scope.ServiceProvider.GetRequiredService<SeveraJobs>().SynchronizeAbsence(), "0 0 31 2 *");
-    jobManager.AddOrUpdate(
-        "SynchronizeProjects",
-        () => scope.ServiceProvider.GetRequiredService<SeveraJobs>().SynchronizeProjects(), "0 0 31 2 *");
-    jobManager.AddOrUpdate(
-        "SynchronizePhases",
-        () => scope.ServiceProvider.GetRequiredService<SeveraJobs>().SynchronizePhases(), "0 0 31 2 *");
-
-    jobManager.AddOrUpdate(
-        "SynchronizeEntraEmployees",
-        () => scope.ServiceProvider.GetRequiredService<EntraJobs>().GetAllEmployeesEntra(),
-        Cron.Daily);
-    jobManager.AddOrUpdate(
-        "SynchronizeSkillsToSkillsTable",
-        () => scope.ServiceProvider.GetRequiredService<FlowCaseJob>().SynchronizeSkillsToSkillsTable(), "0 0 31 2 *");
-    jobManager.AddOrUpdate(
-        "SynchronizeEmployeesWithFlowcaseIdsAsync",
-        () => scope.ServiceProvider.GetRequiredService<FlowCaseJob>().SynchronizeEmployeesWithFlowcaseIdsAsync(), "0 0 31 2 *");
-
-    jobManager.AddOrUpdate(
-        "SynchronizeEmployeeSkillsAsync",
-        () => scope.ServiceProvider.GetRequiredService<FlowCaseJob>().SynchronizeEmployeeSkillsAsync(), "0 0 31 2 *");
+    jobRegistry.RegisterJobs();
 }
-
 app.UseHangfireDashboard();
 app.Run();

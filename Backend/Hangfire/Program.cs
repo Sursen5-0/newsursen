@@ -41,20 +41,16 @@ builder.Services.AddHangfire(config =>
     config.UseSerilogLogProvider();
 });
 builder.Services.AddHangfireServer();
-
-builder.Services.AddScoped<SeveraJobs>();
-builder.Services.AddScoped<EntraJobs>();
-builder.Services.AddScoped<FlowCaseJobs>();
-builder.Services.AddScoped<JobRegistry>();
 builder.Services.RegisterInfrastructureServices(token, environment);
 builder.Services.RegisterApplication();
+builder.Services.RegisterJobs();
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
     var secretClient = scope.ServiceProvider.GetRequiredService<ISecretClient>();
     var hangfireConnection = secretClient.GetSecretAsync("HANGFIRE_CONNECTIONSTRING").Result;
-    var jobRegistry = scope.ServiceProvider.GetRequiredService<JobRegistry>();
+    var jobRegistry = scope.ServiceProvider.GetRequiredService<ReccuringJobRegistry>();
     GlobalConfiguration.Configuration
         .UseSqlServerStorage(hangfireConnection)
         .UseSerilogLogProvider();

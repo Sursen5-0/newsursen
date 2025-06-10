@@ -22,7 +22,7 @@ namespace Infrastructure
 {
     public static class InfrastructureRegitries
     {
-        public static void RegisterInfrastructureServices(this IServiceCollection services, string token, string environment)
+        public static void RegisterInfrastructureServices(this IServiceCollection services, string token, string environment, bool useInMemory = false)
         {
             services.AddHttpClient();
             services.AddScoped<IEmployeeRepository, EmployeeRepository>();
@@ -32,10 +32,18 @@ namespace Infrastructure
 
             services.AddDbContext<SursenContext>((services, options) =>
             {
-                var secretClient = services.GetRequiredService<ISecretClient>();
-                var connectionString = secretClient.GetSecretAsync("CONNECTIONSTRING").Result;
-                options.UseSqlServer(connectionString,
-                    b => b.MigrationsAssembly("Infrastructure"));
+                if (useInMemory)
+                {
+                    options.UseInMemoryDatabase("SursenDb");
+                }
+                else
+                {
+                    var secretClient = services.GetRequiredService<ISecretClient>();
+                    var connectionString = secretClient.GetSecretAsync("CONNECTIONSTRING").Result;
+                    options.UseSqlServer(connectionString,
+                        b => b.MigrationsAssembly("Infrastructure"));
+                }
+
             });
 
             services.AddScoped<ISecretClient, DopplerClient>(provider =>
@@ -51,7 +59,7 @@ namespace Infrastructure
                 {
                     var logger = provider.GetRequiredService<ILogger<RetryHandler>>();
                     return new RetryHandler(new HttpClientHandler(), logger);
-                }); 
+                });
             services.AddHttpClient<IFlowCaseClient, FlowCaseClient>(client =>
             {
                 client.BaseAddress = new Uri("https://twoday.flowcase.com");

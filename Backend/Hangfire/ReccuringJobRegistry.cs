@@ -2,7 +2,7 @@
 
 namespace Hangfire
 {
-    public class JobRegistry(SeveraJobs severa, EntraJobs entra, FlowCaseJobs flowcase)
+    public class ReccuringJobRegistry(SeveraJobs severa, EntraJobs entra, FlowCaseJobs flowcase)
     {
         public void RegisterJobs()
         {

@@ -1,22 +1,9 @@
-using Application.Services;
+using Application;
 using Domain.Interfaces.ExternalClients;
-using Domain.Interfaces.Repositories;
-using Domain.Interfaces.Services;
 using Hangfire;
 using Hangfire.Jobs;
-using Infrastructure.Persistance;
-using Infrastructure.Persistance.Repositories;
-using Infrastructure.Secrets;
-using Infrastructure.Severa;
-using Infrastructure.Entra;
-using Infrastructure.FlowCase;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Serilog.Events;
-using System.Net.Http.Headers;
-using Infrastructure.Common;
-using Microsoft.Extensions.Configuration;
 using Infrastructure;
 
 var token = Environment.GetEnvironmentVariable("DOPPLER_KEY");
@@ -39,7 +26,7 @@ Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Update", LogEventLevel.Warning)
     .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
     .MinimumLevel.Override("System.Data.SqlClient", LogEventLevel.Warning)
-    .MinimumLevel.Override("Microsoft.Data.SqlClient", LogEventLevel.Warning).Enrich.FromLogContext()
+    .MinimumLevel.Override("Microsoft.Data.SqlClient", LogEventLevel.Warning)
     .Enrich.FromLogContext()
     .WriteTo.Console()
     .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day)
@@ -47,13 +34,6 @@ Log.Logger = new LoggerConfiguration()
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddLogging(loggingBuilder =>
-{
-    loggingBuilder
-        .ClearProviders()
-        .SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace)
-        .AddConsole();
-});
 builder.Services.AddSerilog();
 
 builder.Services.AddHangfire(config =>
@@ -66,8 +46,8 @@ builder.Services.AddScoped<SeveraJobs>();
 builder.Services.AddScoped<EntraJobs>();
 builder.Services.AddScoped<FlowCaseJobs>();
 builder.Services.AddScoped<JobRegistry>();
-builder.Services.AddScoped<ISkillService, SkillService>();
 builder.Services.RegisterInfrastructureServices(token, environment);
+builder.Services.RegisterApplication();
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())

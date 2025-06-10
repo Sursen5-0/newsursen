@@ -25,7 +25,6 @@ namespace Infrastructure
         public static void RegisterInfrastructureServices(this IServiceCollection services, string token, string environment)
         {
             services.AddHttpClient();
-            services.AddScoped<IEmployeeService, EmployeeService>();
             services.AddScoped<IEmployeeRepository, EmployeeRepository>();
             services.AddScoped<IProjectRepository, ProjectRepository>();
             services.AddScoped<ISkillRepository, SkillRepository>();

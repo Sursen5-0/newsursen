@@ -74,8 +74,7 @@ namespace IntegrationsTests
             Thread.Sleep(500);
 
             // Assert
-            Assert.Contains(employees, e => e.Email != null &&
-                e.Email.Equals(expectedEmail, StringComparison.OrdinalIgnoreCase));
+            Assert.Contains(expectedEmail, employees.Select(e => e.Email));
         }
     }
 }

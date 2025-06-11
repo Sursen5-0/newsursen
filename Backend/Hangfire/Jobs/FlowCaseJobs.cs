@@ -7,7 +7,7 @@ using Infrastructure.FlowCase;
 
 namespace Hangfire.Jobs
 {
-    public class FlowCaseJob(ISkillService skillService, IEmployeeService employeeService, IJobExecutionRepository _jobExecutionRepository)
+    public class FlowCaseJobs(ISkillService skillService, IEmployeeService employeeService, IJobExecutionRepository _jobExecutionRepository)
     {
         public async Task SynchronizeSkillsToSkillsTable()
         {

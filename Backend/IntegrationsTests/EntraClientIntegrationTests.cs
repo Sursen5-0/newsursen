@@ -60,5 +60,22 @@ namespace IntegrationsTests
             Assert.NotNull(employees);
             Assert.NotEmpty(employees);
         }
+
+
+        [Fact]
+        public async Task EntraClient_GetAllEmployeesAsync_ShouldContainSpecificEmail()
+        {
+            // Arrange
+            var expectedEmail = "bjorn.andersen@twoday.com";
+
+            // Act
+            var employees = await _sut.GetAllEmployeesAsync();
+
+            Thread.Sleep(500);
+
+            // Assert
+            Assert.Contains(employees, e => e.Email != null &&
+                e.Email.Equals(expectedEmail, StringComparison.OrdinalIgnoreCase));
+        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Domain.Interfaces.ExternalClients;
+using Domain.Models;
 using Infrastructure.FlowCase;
 using Infrastructure.Secrets;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -36,18 +37,16 @@ public class FlowCaseIntegrationsTests
         _client = new FlowCaseClient(_secretClient, flowCaseHttpClient, _logger);
     }
 
-    [Fact]
-    public async Task TestFlowCaseClient()
-    {
-        // Arrange
-        var email = "bjorn.andersen@twoday.com";
 
+    [Fact]
+    public async Task FetchSkills_FromFlowCase_IsSuccessfull()
+    {
         // Act
-        var response = await _client.GetUser(email); //Used a random used endpoint for testing
+        List<SkillDTO> skills = await _client.GetSkillsFromFlowcaseAsync();
 
         // Assert
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.All(skills, skill => Assert.NotNull(skill));
+        Assert.All(skills, skill => Assert.False(string.IsNullOrWhiteSpace(skill.SkillName)));
+
     }
-
-
 }

@@ -132,12 +132,6 @@ namespace Infrastructure.FlowCase
 
         }
 
-        public async Task<FlowcaseReturnModel<FlowcaseUserModel>> GetUser(string email)
-        {
-            var uri = $"/api/v1/users/find?email={Uri.EscapeDataString(email)}";
-            return await MakeRequest<FlowcaseUserModel>(uri);
-        }
-
         private async Task<FlowcaseReturnModel<T>> MakeRequest<T>(string path)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, path);

@@ -11,7 +11,9 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
+		<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.6" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.*" />
+		<PackageReference Include="Microsoft.Extensions.Http" Version="9.0.6" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.*" />
 	</ItemGroup>
 

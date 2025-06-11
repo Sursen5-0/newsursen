@@ -41,9 +41,10 @@ public class FlowCaseIntegrationsTests
     [Fact]
     public async Task FetchSkills_FromFlowCase_IsSuccessfull()
     {
-        // Arrange
+        // Act
         List<SkillDTO> skills = await _client.GetSkillsFromFlowcaseAsync();
 
+        // Assert
         Assert.All(skills, skill => Assert.NotNull(skill));
         Assert.All(skills, skill => Assert.False(string.IsNullOrWhiteSpace(skill.SkillName)));
 

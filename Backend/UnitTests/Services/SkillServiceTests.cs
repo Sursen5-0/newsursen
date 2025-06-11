@@ -71,7 +71,14 @@ namespace UnitTests.Services
             // Act
             await _sut.SynchronizeSkillsFromFlowcaseAsync();
             // Assert
-            _loggerMock.Verify(x => x.LogWarning("No skills found in Flowcase, skipping synchronization."), Times.Once);
+            _loggerMock.Verify(
+                x => x.Log(
+                    LogLevel.Warning,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("No skills found in Flowcase, skipping synchronization.")),
+                    It.IsAny<Exception>(),
+                    It.IsAny<Func<It.IsAnyType, Exception, string>>()),
+                Times.Once);
         }
     }
 }
